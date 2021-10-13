@@ -14,4 +14,10 @@ set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/lib)
 
 INCLUDE_DIRECTORIES ( include )
 
+set( src_generator_lib
+    src/CircuitGenerator.cpp
+)
+add_library( BooleanCircuitGenerator STATIC ${src_generator_lib} )
+
+
 add_subdirectory( unit_tests )
