@@ -14,6 +14,7 @@ set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/lib)
 
 INCLUDE_DIRECTORIES ( include )
 
+
 set( src_generator_lib
     src/CircuitGenerator.cpp
 )
