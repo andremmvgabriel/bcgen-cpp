@@ -38,4 +38,5 @@
 #
 build/*
 bin/*
+circuits/*
 .vscode
