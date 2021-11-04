@@ -55,7 +55,10 @@ namespace gabe {
 
                 ~CircuitGenerator();
 
+                // Basic wire operations
                 void xor(const Wire& in1, const Wire& in2, Wire& out);
+                void and(const Wire& in1, const Wire& in2, Wire& out);
+                //void xor(const UnsignedVar& in1, const UnsignedVar& in2, UnsignedVar& out);
             };
         }
     }

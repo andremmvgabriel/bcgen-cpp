@@ -68,3 +68,13 @@ void gabe::circuits::generator::CircuitGenerator::xor(const Wire& in1, const Wir
     _counter_wires++;
     _counter_xor_gates++;
 }
+
+void gabe::circuits::generator::CircuitGenerator::and(const Wire& in1, const Wire& in2, Wire& out) {
+    _write_2_1_gate( in1.label, in2.label, _counter_wires, _gates_map["and"] );
+
+    out.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
+
+    // Counters increment
+    _counter_wires++;
+    _counter_xor_gates++;
+}
