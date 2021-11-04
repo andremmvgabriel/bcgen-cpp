@@ -5,7 +5,7 @@ project(BooleanCircuitGenerator)
 #find_package( Boost REQUIRED COMPONENTS unit_test_framework )
 
 # Specify the C++ standard
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # Changes the binary, static lib, and libraries default paths of the CMake build, respectively
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin)
@@ -20,5 +20,5 @@ set( src_generator_lib
 )
 add_library( BooleanCircuitGenerator STATIC ${src_generator_lib} )
 
-
-add_subdirectory( unit_tests )
+add_subdirectory( tests )
+add_subdirectory( examples )
