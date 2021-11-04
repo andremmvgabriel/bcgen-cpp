@@ -42,5 +42,29 @@ void gabe::circuits::generator::CircuitGenerator::_close_files() {
     if (_temp_circuit.is_open()) { _temp_circuit.close(); }
 
     // Removes the temporary file from the system
-    remove((_circuits_directory + _temp_circuit_name + ".txt").c_str() );
+    //remove((_circuits_directory + _temp_circuit_name + ".txt").c_str() );
+}
+
+void gabe::circuits::generator::CircuitGenerator::_write_2_1_gate(const uint64_t in1, const uint64_t in2, const uint64_t out, const std::string &gate) {
+    // Input 1 should contain the smallest label input wire
+    std::string input1 = in1 < in2 ? std::to_string(in1) : std::to_string(in2);
+
+    // Input 2 should contain the biggest label input wire
+    std::string input2 = in1 > in2 ? std::to_string(in1) : std::to_string(in2);
+
+    // Line construction
+    std::string line = "2 1 " + input1 + " " + input2 + " " + std::to_string(out) + " " + gate + "\n";
+
+    // Writting...
+    _temp_circuit.write( line.c_str(), line.size() );
+}
+
+void gabe::circuits::generator::CircuitGenerator::xor(const Wire& in1, const Wire& in2, Wire& out) {
+    _write_2_1_gate( in1.label, in2.label, _counter_wires, _gates_map["xor"] );
+
+    out.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
+
+    // Counters increment
+    _counter_wires++;
+    _counter_xor_gates++;
 }

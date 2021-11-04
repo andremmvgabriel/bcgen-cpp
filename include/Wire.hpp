@@ -8,7 +8,7 @@ namespace gabe {
             class Wire
             {
             public:
-                uint8_t label = 0;
+                uint64_t label = 0;
             };
         }
     }
