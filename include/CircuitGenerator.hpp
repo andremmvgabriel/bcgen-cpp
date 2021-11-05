@@ -49,8 +49,8 @@ namespace gabe {
 
                 void _assert_equal_size(const UnsignedVar& var1, const UnsignedVar& var2);
 
-                void _write_1_1_gate(const uint64_t in, const uint64_t out, const std::string &gate);
-                void _write_2_1_gate(const uint64_t in1, const uint64_t in2, const uint64_t out, const std::string &gate);
+                void _write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate);
+                void _write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate);
 
             public: // After tests put as protected
                 CircuitGenerator();
@@ -60,13 +60,13 @@ namespace gabe {
                 ~CircuitGenerator();
 
                 // Basic wire operations
-                void xor(const Wire& in1, const Wire& in2, Wire& out);
-                void and(const Wire& in1, const Wire& in2, Wire& out);
-                void inv(const Wire& in, Wire& out);
-                void or(const Wire& in1, const Wire& in2, Wire& out);
+                void xor(const Wire& input1, const Wire& input2, Wire& output);
+                void and(const Wire& input1, const Wire& input2, Wire& output);
+                void inv(const Wire& input, Wire& output);
+                void or(const Wire& input1, const Wire& input2, Wire& output);
 
                 // Basic unsigned operations
-                void xor(const UnsignedVar& in1, const UnsignedVar& in2, UnsignedVar& out);
+                void xor(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
             };
         }
     }

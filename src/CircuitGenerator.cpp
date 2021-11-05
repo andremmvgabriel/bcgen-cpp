@@ -50,74 +50,74 @@ void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const Unsig
         throw std::invalid_argument("The inserted variables do not share the same size.");
 }
 
-void gabe::circuits::generator::CircuitGenerator::_write_1_1_gate(const uint64_t in, const uint64_t out, const std::string &gate) {
+void gabe::circuits::generator::CircuitGenerator::_write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate) {
     // Line construction
-    std::string line = "1 1 " + std::to_string(in) + " " + std::to_string(out) + " " + gate + "\n";
+    std::string line = "1 1 " + std::to_string(input) + " " + std::to_string(output) + " " + gate + "\n";
 
     // Writting...
     _temp_circuit.write( line.c_str(), line.size() );
 }
 
-void gabe::circuits::generator::CircuitGenerator::_write_2_1_gate(const uint64_t in1, const uint64_t in2, const uint64_t out, const std::string &gate) {
+void gabe::circuits::generator::CircuitGenerator::_write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate) {
     // Input 1 should contain the smallest label input wire
-    std::string input1 = in1 < in2 ? std::to_string(in1) : std::to_string(in2);
+    std::string in1 = input1 < input2 ? std::to_string(input1) : std::to_string(input2);
 
     // Input 2 should contain the biggest label input wire
-    std::string input2 = in1 > in2 ? std::to_string(in1) : std::to_string(in2);
+    std::string in2 = input1 > input2 ? std::to_string(input1) : std::to_string(input2);
 
     // Line construction
-    std::string line = "2 1 " + input1 + " " + input2 + " " + std::to_string(out) + " " + gate + "\n";
+    std::string line = "2 1 " + in1 + " " + in2 + " " + std::to_string(output) + " " + gate + "\n";
 
     // Writting...
     _temp_circuit.write( line.c_str(), line.size() );
 }
 
-void gabe::circuits::generator::CircuitGenerator::xor(const Wire& in1, const Wire& in2, Wire& out) {
-    _write_2_1_gate( in1.label, in2.label, _counter_wires, _gates_map["xor"] );
+void gabe::circuits::generator::CircuitGenerator::xor(const Wire& input1, const Wire& input2, Wire& output) {
+    _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["xor"] );
 
-    out.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
+    output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
 
     // Counters increment
     _counter_wires++;
     _counter_xor_gates++;
 }
 
-void gabe::circuits::generator::CircuitGenerator::and(const Wire& in1, const Wire& in2, Wire& out) {
-    _write_2_1_gate( in1.label, in2.label, _counter_wires, _gates_map["and"] );
+void gabe::circuits::generator::CircuitGenerator::and(const Wire& input1, const Wire& input2, Wire& output) {
+    _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["and"] );
 
-    out.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
+    output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
 
     // Counters increment
     _counter_wires++;
     _counter_and_gates++;
 }
 
-void gabe::circuits::generator::CircuitGenerator::inv(const Wire& in, Wire& out) {
-    _write_1_1_gate( in.label, _counter_wires, _gates_map["inv"] );
+void gabe::circuits::generator::CircuitGenerator::inv(const Wire& input, Wire& output) {
+    _write_1_1_gate( input.label, _counter_wires, _gates_map["inv"] );
 
-    out.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
+    output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
 
     // Counters increment
     _counter_wires++;
     _counter_inv_gates++;
 }
 
-void gabe::circuits::generator::CircuitGenerator::or(const Wire& in1, const Wire& in2, Wire& out) {
-    _write_2_1_gate( in1.label, in2.label, _counter_wires, _gates_map["or"] );
+void gabe::circuits::generator::CircuitGenerator::or(const Wire& input1, const Wire& input2, Wire& output) {
+    _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["or"] );
 
-    out.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
+    output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
 
     // Counters increment
     _counter_wires++;
     _counter_or_gates++;
 }
 
-void gabe::circuits::generator::CircuitGenerator::xor(const UnsignedVar& in1, const UnsignedVar& in2, UnsignedVar& out) {
+void gabe::circuits::generator::CircuitGenerator::xor(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
-    _assert_equal_size(in1, in2);
-    _assert_equal_size(in1, out);
+    _assert_equal_size(input1, input2);
+    _assert_equal_size(input1, output);
 
     // XOR all the wires
-    for (int i = 0; i < in1.number_wires; i++)
-        xor(in1.wires[i], in2.wires[i], out.wires[i]);
+    for (int i = 0; i < input1.number_wires; i++)
+        xor(input1.wires[i], input2.wires[i], output.wires[i]);
 }
