@@ -45,6 +45,11 @@ void gabe::circuits::generator::CircuitGenerator::_close_files() {
     //remove((_circuits_directory + _temp_circuit_name + ".txt").c_str() );
 }
 
+void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const UnsignedVar& var1, const UnsignedVar& var2) {
+    if (var1.number_wires != var2.number_wires)
+        throw std::invalid_argument("The inserted variables do not share the same size.");
+}
+
 void gabe::circuits::generator::CircuitGenerator::_write_1_1_gate(const uint64_t in, const uint64_t out, const std::string &gate) {
     // Line construction
     std::string line = "1 1 " + std::to_string(in) + " " + std::to_string(out) + " " + gate + "\n";
@@ -105,4 +110,14 @@ void gabe::circuits::generator::CircuitGenerator::or(const Wire& in1, const Wire
     // Counters increment
     _counter_wires++;
     _counter_or_gates++;
+}
+
+void gabe::circuits::generator::CircuitGenerator::xor(const UnsignedVar& in1, const UnsignedVar& in2, UnsignedVar& out) {
+    // Safety checks
+    _assert_equal_size(in1, in2);
+    _assert_equal_size(in1, out);
+
+    // XOR all the wires
+    for (int i = 0; i < in1.number_wires; i++)
+        xor(in1.wires[i], in2.wires[i], out.wires[i]);
 }

@@ -8,11 +8,11 @@
 namespace gabe {
     namespace circuits {
         namespace generator {
-            class UnsignedVariable
+            class UnsignedVar
             {
             public:
-                UnsignedVariable();
-                UnsignedVariable(uint64_t number_wires);
+                UnsignedVar();
+                UnsignedVar(uint64_t number_wires);
 
                 uint64_t number_wires = 0;
                 std::vector<Wire> wires;

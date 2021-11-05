@@ -16,6 +16,7 @@ INCLUDE_DIRECTORIES ( include )
 
 
 set( src_generator_lib
+    src/UnsignedVar.cpp
     src/CircuitGenerator.cpp
 )
 add_library( BooleanCircuitGenerator STATIC ${src_generator_lib} )

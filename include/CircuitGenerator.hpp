@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include <Wire.hpp>
+#include <UnsignedVar.hpp>
 
 namespace gabe {
     namespace circuits {
@@ -46,6 +47,8 @@ namespace gabe {
                 void _open_files();
                 void _close_files();
 
+                void _assert_equal_size(const UnsignedVar& var1, const UnsignedVar& var2);
+
                 void _write_1_1_gate(const uint64_t in, const uint64_t out, const std::string &gate);
                 void _write_2_1_gate(const uint64_t in1, const uint64_t in2, const uint64_t out, const std::string &gate);
 
@@ -62,7 +65,8 @@ namespace gabe {
                 void inv(const Wire& in, Wire& out);
                 void or(const Wire& in1, const Wire& in2, Wire& out);
 
-                //void xor(const UnsignedVar& in1, const UnsignedVar& in2, UnsignedVar& out);
+                // Basic unsigned operations
+                void xor(const UnsignedVar& in1, const UnsignedVar& in2, UnsignedVar& out);
             };
         }
     }
