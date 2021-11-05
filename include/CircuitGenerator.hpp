@@ -30,8 +30,8 @@ namespace gabe {
                 //uint64_t _counter_gates = 0x00;
                 uint64_t _counter_wires = 0x00;
                 uint64_t _counter_xor_gates = 0x00;
-                //uint64_t _counter_and_gates = 0x00;
-                //uint64_t _counter_inv_gates = 0x00;
+                uint64_t _counter_and_gates = 0x00;
+                uint64_t _counter_inv_gates = 0x00;
                 //uint64_t _counter_or_gates = 0x00;
 
                 std::unordered_map<std::string, std::string> _gates_map = {
@@ -46,6 +46,7 @@ namespace gabe {
                 void _open_files();
                 void _close_files();
 
+                void _write_1_1_gate(const uint64_t in, const uint64_t out, const std::string &gate);
                 void _write_2_1_gate(const uint64_t in1, const uint64_t in2, const uint64_t out, const std::string &gate);
 
             public: // After tests put as protected
@@ -58,6 +59,7 @@ namespace gabe {
                 // Basic wire operations
                 void xor(const Wire& in1, const Wire& in2, Wire& out);
                 void and(const Wire& in1, const Wire& in2, Wire& out);
+                void inv(const Wire& in, Wire& out);
                 //void xor(const UnsignedVar& in1, const UnsignedVar& in2, UnsignedVar& out);
             };
         }
