@@ -32,7 +32,7 @@ namespace gabe {
                 uint64_t _counter_xor_gates = 0x00;
                 uint64_t _counter_and_gates = 0x00;
                 uint64_t _counter_inv_gates = 0x00;
-                //uint64_t _counter_or_gates = 0x00;
+                uint64_t _counter_or_gates = 0x00;
 
                 std::unordered_map<std::string, std::string> _gates_map = {
                     {"xor", ""},
@@ -60,6 +60,8 @@ namespace gabe {
                 void xor(const Wire& in1, const Wire& in2, Wire& out);
                 void and(const Wire& in1, const Wire& in2, Wire& out);
                 void inv(const Wire& in, Wire& out);
+                void or(const Wire& in1, const Wire& in2, Wire& out);
+
                 //void xor(const UnsignedVar& in1, const UnsignedVar& in2, UnsignedVar& out);
             };
         }
