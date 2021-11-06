@@ -67,6 +67,9 @@ namespace gabe {
 
                 // Basic unsigned operations
                 void xor(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
+                void and(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
+                void inv(const UnsignedVar& input, UnsignedVar& output);
+                void or(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
             };
         }
     }
