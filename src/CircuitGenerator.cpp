@@ -127,6 +127,16 @@ void gabe::circuits::generator::CircuitGenerator::xor(const SignedVar& input1, c
         xor(input1.wires[i], input2.wires[i], output.wires[i]);
 }
 
+void gabe::circuits::generator::CircuitGenerator::and(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
+    // Safety checks
+    _assert_equal_size(input1, input2);
+    _assert_equal_size(input1, output);
+
+    // AND all the wires
+    for (int i = 0; i < input1.number_wires; i++)
+        and(input1.wires[i], input2.wires[i], output.wires[i]);
+}
+
 void gabe::circuits::generator::CircuitGenerator::xor(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
