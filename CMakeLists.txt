@@ -16,6 +16,7 @@ INCLUDE_DIRECTORIES ( include )
 
 
 set( src_generator_lib
+    src/SignedVar.cpp
     src/UnsignedVar.cpp
     src/CircuitGenerator.cpp
 )
