@@ -70,7 +70,7 @@ namespace gabe {
                 // Basic signed operations
                 void xor(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
                 void and(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
-                //void inv(const SignedVar& input, SignedVar& output);
+                void inv(const SignedVar& input, SignedVar& output);
 
                 // Basic unsigned operations
                 void xor(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
