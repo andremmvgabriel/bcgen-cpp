@@ -90,6 +90,8 @@ namespace gabe {
 
                 // Arithmetic unsigned operations
                 void addition(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
+                void subtraction(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
+                void multiplication(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
             };
         }
     }

@@ -215,7 +215,6 @@ void gabe::circuits::generator::CircuitGenerator::or(const UnsignedVar& input1, 
         or(input1[i], input2[i], output[i]);
 }
 
-
 void gabe::circuits::generator::CircuitGenerator::addition(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
@@ -223,9 +222,9 @@ void gabe::circuits::generator::CircuitGenerator::addition(const UnsignedVar& in
 
     // Variable creations
     UnsignedVar carry(output.size());
-    UnsignedVar xor_a_b(input1.size());
-    UnsignedVar xor_a_b_and_c(input1.size());
-    UnsignedVar and_a_b(input1.size());
+    UnsignedVar xor_a_b(output.size()); // Consider as: d
+    UnsignedVar and_d_c(output.size());
+    UnsignedVar and_a_b(output.size());
 
     // Variable value initializations
     assign_value(carry, 0);
@@ -237,8 +236,8 @@ void gabe::circuits::generator::CircuitGenerator::addition(const UnsignedVar& in
         // Do not perform these operations if it is the last cycle
         if (i != output.size() - 1) {
             and(input1[i], input2[i], and_a_b[i]);
-            and(xor_a_b[i], carry[i], xor_a_b_and_c[i]);
-            or(and_a_b[i], xor_a_b_and_c[i], carry[i + 1]);
+            and(xor_a_b[i], carry[i], and_d_c[i]);
+            or(and_a_b[i], and_d_c[i], carry[i + 1]);
         }
     }
 
@@ -246,4 +245,65 @@ void gabe::circuits::generator::CircuitGenerator::addition(const UnsignedVar& in
     // TODO - Think of a solution to make this possible without having this separated for cycle
     for (int i = 0; i < output.size(); i++)
         xor(xor_a_b[i], carry[i], output[i]);
+}
+
+void gabe::circuits::generator::CircuitGenerator::subtraction(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+    // Safety checks
+    _assert_equal_size(input1, input2);
+    _assert_equal_size(input1, output);
+
+    // Variable creations
+    UnsignedVar carry(output.size());
+    UnsignedVar xor_a_b(output.size()); // Consider as: d
+    UnsignedVar inv_a(output.size()); // Consider as: e
+    UnsignedVar inv_d(output.size());
+    UnsignedVar and_d_c(output.size());
+    UnsignedVar and_a_c(output.size());
+
+    // Variable value initializations
+    assign_value(carry, 0);
+
+    // Middle operations
+    for (int i = 0; i < output.size(); i++) {
+        xor(input1[i], input2[i], xor_a_b[i]);
+
+        // Do not perform these operations if it is the last cycle
+        if (i != output.size() - 1) {
+            inv(xor_a_b[i], inv_d[i]);
+            inv(input1[i], inv_a[i]);
+            and(inv_d[i], carry[i], and_d_c[i]);
+            and(inv_a[i], input2[i], and_a_c[i]);
+            or(and_d_c[i], and_a_c[i], carry[i]);
+        }
+    }
+
+    // Final operations (only done like this to put the output wires last in the writting phase)
+    // TODO - Think of a solution to make this possible without having this separated for cycle
+    for (int i = 0; i < output.size(); i++)
+        xor(xor_a_b[i], carry[i], output[i]);
+}
+
+void gabe::circuits::generator::CircuitGenerator::multiplication(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+    // Safety checks
+    // TODO - Think of any safety checks
+
+    // Variables for multiplication calculation
+    std::vector<UnsignedVar> variables(input2.size()); // As many as the size of the input2 variable
+
+    // Variables creation
+    for (int i = 0; i < input2.size(); i++) {
+        assign_value(variables.at(i), 0);
+
+        // Variable is 0 or equal to input2 (shifted j, where j is the iteration step)
+        for (int j = 0; j < input1.size(); j++)
+            and(input1[j], input2[i], variables.at(i)[i+j]);
+    }
+
+    // Final operations
+    for (int i = 1; i < variables.size(); i++) {
+        if (i == 1)
+            addition(variables.at(i - 1), variables.at(i), output);
+        else
+            addition(output, variables.at(i), output);
+    }
 }
