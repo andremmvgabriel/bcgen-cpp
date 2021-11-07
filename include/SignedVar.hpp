@@ -1,21 +1,15 @@
 #pragma once
 
-#include <stdint.h>
-#include <vector>
-
-#include <Wire.hpp>
+#include <Variable.hpp>
 
 namespace gabe {
     namespace circuits {
         namespace generator {
-            class SignedVar
+            class SignedVar : public Variable
             {
             public:
                 SignedVar();
                 SignedVar(uint64_t number_wires);
-
-                uint64_t number_wires = 0;
-                std::vector<Wire> wires;
             };
         }
     }
