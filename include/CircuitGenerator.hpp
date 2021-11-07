@@ -43,6 +43,10 @@ namespace gabe {
                     {"or", ""}
                 };
 
+                // Zero and One wires
+                Wire _zero_wire; // Wire that is always zero in the circuit
+                Wire _one_wire; // Wire that is always one in the circuit
+
             private:
                 void _create_save_directory();
                 void _open_files();
@@ -61,6 +65,11 @@ namespace gabe {
 
                 ~CircuitGenerator();
 
+            public:
+                // Values assignment
+                void assign_value(SignedVar& variable, int64_t value);
+                void assign_value(UnsignedVar& variable, uint64_t value);
+
                 // Basic wire operations
                 void xor(const Wire& input1, const Wire& input2, Wire& output);
                 void and(const Wire& input1, const Wire& input2, Wire& output);
@@ -78,6 +87,9 @@ namespace gabe {
                 void and(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
                 void inv(const UnsignedVar& input, UnsignedVar& output);
                 void or(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
+
+                // Arithmetic unsigned operations
+                void addition(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
             };
         }
     }

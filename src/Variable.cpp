@@ -14,6 +14,10 @@ gabe::circuits::generator::Wire& gabe::circuits::generator::Variable::operator[]
     return wires[index];
 }
 
-uint64_t gabe::circuits::generator::Variable::size() {
+const gabe::circuits::generator::Wire& gabe::circuits::generator::Variable::operator[](uint64_t index) const {
+    return wires[index];
+}
+
+uint64_t gabe::circuits::generator::Variable::size() const {
     return wires.size();
 }

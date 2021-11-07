@@ -19,7 +19,8 @@ namespace gabe {
 
             public:
                 Wire& operator [] (uint64_t index);
-                uint64_t size();
+                const Wire& operator [] (uint64_t index) const;
+                uint64_t size() const;
             };
         }
     }
