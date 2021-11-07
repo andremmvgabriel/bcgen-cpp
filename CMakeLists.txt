@@ -16,6 +16,8 @@ INCLUDE_DIRECTORIES ( include )
 
 
 set( src_generator_lib
+    src/Wire.cpp
+    src/Variable.cpp
     src/SignedVar.cpp
     src/UnsignedVar.cpp
     src/CircuitGenerator.cpp
