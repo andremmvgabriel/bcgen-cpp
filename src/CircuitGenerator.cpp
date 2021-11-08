@@ -133,7 +133,7 @@ void gabe::circuits::generator::CircuitGenerator::shift_right(UnsignedVar &varia
         variable[i] = variable[i + amount];
     
     // Assign 0 to the new wires
-    for (int64_t i = variable.size(); i > (int64_t)variable.size() - 1i64 - (int64_t)amount && i >= 0; i--)
+    for (int64_t i = variable.size() - 1i64; i > (int64_t)variable.size() - 1i64 - (int64_t)amount && i >= 0; i--)
         variable[i] = _zero_wire;
 }
 
@@ -328,7 +328,7 @@ void gabe::circuits::generator::CircuitGenerator::multiplication(const UnsignedV
     // TODO - Think of any safety checks
 
     // Variables for multiplication calculation
-    std::vector<UnsignedVar> variables(input2.size()); // As many as the size of the input2 variable
+    std::vector<UnsignedVar> variables(input2.size(), UnsignedVar(output.size())); // As many as the size of the input2 variable
 
     // Variables creation
     for (int i = 0; i < input2.size(); i++) {
