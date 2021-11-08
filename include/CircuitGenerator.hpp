@@ -70,6 +70,12 @@ namespace gabe {
                 void assign_value(SignedVar& variable, int64_t value);
                 void assign_value(UnsignedVar& variable, uint64_t value);
 
+                // Shifters
+                void shift_left(SignedVar &variable, uint64_t amount);
+                void shift_left(UnsignedVar &variable, uint64_t amount);
+                void shift_right(SignedVar &variable, uint64_t amount);
+                void shift_right(UnsignedVar &variable, uint64_t amount);
+
                 // Basic wire operations
                 void xor(const Wire& input1, const Wire& input2, Wire& output);
                 void and(const Wire& input1, const Wire& input2, Wire& output);
@@ -92,6 +98,9 @@ namespace gabe {
                 void addition(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
                 void subtraction(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
                 void multiplication(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
+                void division(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient, UnsignedVar& output_remainder);
+                void division_quotient(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient);
+                void division_remainder(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_remainder);
             };
         }
     }

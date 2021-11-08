@@ -97,6 +97,46 @@ void gabe::circuits::generator::CircuitGenerator::assign_value(UnsignedVar& vari
     }
 }
 
+void gabe::circuits::generator::CircuitGenerator::shift_left(SignedVar &variable, uint64_t amount) {
+    // Shifting
+    for (uint64_t i = variable.size() - 1; i >= amount; i--)
+        variable[i] = variable[i - amount];
+    
+    // Assign 0 to the new wires
+    for (uint64_t i = 0; i < amount && i < variable.size(); i++)
+        variable[i] = _zero_wire;
+}
+
+void gabe::circuits::generator::CircuitGenerator::shift_left(UnsignedVar &variable, uint64_t amount) {
+    // Shifting
+    for (uint64_t i = variable.size() - 1; i >= amount; i--)
+        variable[i] = variable[i - amount];
+    
+    // Assign 0 to the new wires
+    for (uint64_t i = 0; i < amount && i < variable.size(); i++)
+        variable[i] = _zero_wire;
+}
+
+void gabe::circuits::generator::CircuitGenerator::shift_right(SignedVar &variable, uint64_t amount) {
+    // Shifting
+    for (int64_t i = 0; i < (int64_t)variable.size() - (int64_t)amount; i++)
+        variable[i] = variable[i + amount];
+    
+    // Assign 0 to the new wires
+    for (int64_t i = variable.size(); i > (int64_t)variable.size() - 1i64 - (int64_t)amount && i >= 0; i--)
+        variable[i] = _zero_wire;
+}
+
+void gabe::circuits::generator::CircuitGenerator::shift_right(UnsignedVar &variable, uint64_t amount) {
+    // Shifting
+    for (int64_t i = 0; i < (int64_t)variable.size() - (int64_t)amount; i++)
+        variable[i] = variable[i + amount];
+    
+    // Assign 0 to the new wires
+    for (int64_t i = variable.size(); i > (int64_t)variable.size() - 1i64 - (int64_t)amount && i >= 0; i--)
+        variable[i] = _zero_wire;
+}
+
 void gabe::circuits::generator::CircuitGenerator::xor(const Wire& input1, const Wire& input2, Wire& output) {
     _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["xor"] );
 
@@ -306,4 +346,39 @@ void gabe::circuits::generator::CircuitGenerator::multiplication(const UnsignedV
         else
             addition(output, variables.at(i), output);
     }
+}
+
+void gabe::circuits::generator::CircuitGenerator::division(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient, UnsignedVar& output_remainder) {
+    // Safety checks
+    //_assert_equal_size(input1, input2);
+
+    // TODO - Temporary...
+    //assign_value(output_remainder, 0);
+
+    // Variable creations
+    //UnsignedVar zero(input1.size());
+    //UnsignedVar control(1);
+    //UnsignedVar substractor(input1.size());
+
+    // Variable value initializations
+    //assign_value(zero, 0);
+
+    // Middle operations
+    // for (int i = 0; i < output.size(); i++) {
+    //     xor(input1[i], input2[i], xor_a_b[i]);
+
+    //     // Do not perform these operations if it is the last cycle
+    //     if (i != output.size() - 1) {
+    //         inv(xor_a_b[i], inv_d[i]);
+    //         inv(input1[i], inv_a[i]);
+    //         and(inv_d[i], carry[i], and_d_c[i]);
+    //         and(inv_a[i], input2[i], and_a_c[i]);
+    //         or(and_d_c[i], and_a_c[i], carry[i]);
+    //     }
+    // }
+
+    // Final operations (only done like this to put the output wires last in the writting phase)
+    // TODO - Think of a solution to make this possible without having this separated for cycle
+    //for (int i = 0; i < output.size(); i++)
+    //    xor(xor_a_b[i], carry[i], output[i]);
 }
