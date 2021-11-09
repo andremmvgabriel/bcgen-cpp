@@ -381,22 +381,33 @@ void gabe::circuits::generator::CircuitGenerator::multiplication(const UnsignedV
     //}
 //}
 
-void gabe::circuits::generator::CircuitGenerator::multiplexer(const UnsignedVar& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
-    UnsignedVar not_control(control.size());
+void gabe::circuits::generator::CircuitGenerator::multiplexer(const Wire& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+    // Safety checks
+    _assert_equal_size(input1, input2);
+    _assert_equal_size(input1, output);
+
+    Wire not_control;
     inv(control, not_control);
 
     UnsignedVar and_in1(input1.size());
     UnsignedVar and_in2(input2.size());
 
     for (int i = 0; i < input1.size(); i++) {
-        and(not_control[0], input1[i], and_in1[i]);
-        and(control[0], input2[i], and_in2[i]);
+        and(not_control, input1[i], and_in1[i]);
+        and(control, input2[i], and_in2[i]);
     }
 
     // Final operation (only done like this to put the output wires last in the writting phase)
     // TODO - Think of a solution to make this possible without having this separated for cycle
     for (int i = 0; i < input1.size(); i++)
         or(and_in1[i], and_in2[i], output[i]);
+}
+
+void gabe::circuits::generator::CircuitGenerator::multiplexer(const UnsignedVar& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+    // Safety checks
+    _assert_equal_size(control, 1);
+
+    multiplexer(control[0], input1, input2, output);
 }
 
 void gabe::circuits::generator::CircuitGenerator::equal(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output) {
@@ -418,6 +429,8 @@ void gabe::circuits::generator::CircuitGenerator::equal(const UnsignedVar& input
 }
 
 void gabe::circuits::generator::CircuitGenerator::equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+    // Safety checks
     _assert_equal_size(output, 1);
+
     equal(input1, input1, output[0]);
 }
