@@ -123,7 +123,7 @@ void gabe::circuits::generator::CircuitGenerator::shift_right(SignedVar &variabl
         variable[i] = variable[i + amount];
     
     // Assign 0 to the new wires
-    for (int64_t i = variable.size(); i > (int64_t)variable.size() - 1i64 - (int64_t)amount && i >= 0; i--)
+    for (int64_t i = variable.size() - 1i64; i > (int64_t)variable.size() - 1i64 - (int64_t)amount && i >= 0; i--)
         variable[i] = _zero_wire;
 }
 
@@ -348,11 +348,11 @@ void gabe::circuits::generator::CircuitGenerator::multiplication(const UnsignedV
     }
 }
 
-void gabe::circuits::generator::CircuitGenerator::division(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient, UnsignedVar& output_remainder) {
+//void gabe::circuits::generator::CircuitGenerator::division(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient, UnsignedVar& output_remainder) {
     // Safety checks
     //_assert_equal_size(input1, input2);
 
-    // TODO - Temporary...
+    // TODO - Temporary like this...
     //assign_value(output_remainder, 0);
 
     // Variable creations
@@ -363,22 +363,28 @@ void gabe::circuits::generator::CircuitGenerator::division(const UnsignedVar& in
     // Variable value initializations
     //assign_value(zero, 0);
 
-    // Middle operations
-    // for (int i = 0; i < output.size(); i++) {
-    //     xor(input1[i], input2[i], xor_a_b[i]);
+    //for (int i = 0; i < input1.size(); i++) {
+    //    shift_left(output_remainder, 1);
+    //    output_remainder[0] = input1[input1.size() - 1 - i];
 
-    //     // Do not perform these operations if it is the last cycle
-    //     if (i != output.size() - 1) {
-    //         inv(xor_a_b[i], inv_d[i]);
-    //         inv(input1[i], inv_a[i]);
-    //         and(inv_d[i], carry[i], and_d_c[i]);
-    //         and(inv_a[i], input2[i], and_a_c[i]);
-    //         or(and_d_c[i], and_a_c[i], carry[i]);
-    //     }
-    // }
+        // 
+    //}
+//}
 
-    // Final operations (only done like this to put the output wires last in the writting phase)
+void gabe::circuits::generator::CircuitGenerator::multiplexer(const UnsignedVar& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+    UnsignedVar not_control(control.size());
+    inv(control, not_control);
+
+    UnsignedVar and_in1(input1.size());
+    UnsignedVar and_in2(input2.size());
+
+    for (int i = 0; i < input1.size(); i++) {
+        and(not_control[0], input1[i], and_in1[i]);
+        and(control[0], input2[i], and_in2[i]);
+    }
+
+    // Final operation (only done like this to put the output wires last in the writting phase)
     // TODO - Think of a solution to make this possible without having this separated for cycle
-    //for (int i = 0; i < output.size(); i++)
-    //    xor(xor_a_b[i], carry[i], output[i]);
+    for (int i = 0; i < input1.size(); i++)
+        or(and_in1[i], and_in2[i], output[i]);
 }
