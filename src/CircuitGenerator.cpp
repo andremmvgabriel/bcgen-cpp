@@ -476,3 +476,45 @@ void gabe::circuits::generator::CircuitGenerator::greater(const UnsignedVar& inp
 
     greater(input1, input2, output[0]);
 }
+
+void gabe::circuits::generator::CircuitGenerator::smaller(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output) {
+    // TODO - Make a schematic in docs for this function, so people understand the following lines
+
+    // Safety checks
+    _assert_equal_size(input1, input2);
+
+    UnsignedVar not_input1(input1.size());
+    inv(input1, not_input1);
+
+    UnsignedVar inputs_xnor(input1.size());
+    // This is done like this instead of a simple xor and inv to the whole variables because the least significant wire from the inputs is not relevant for the xnor
+    for (int i = 1; i < input1.size(); i++) {
+        xor(input1[i], input2[i], inputs_xnor[i]);
+        inv(inputs_xnor[i], inputs_xnor[i]);
+    }
+
+    // Performs the operations between the ORs (see schematic)
+    UnsignedVar middle_operations(input1.size());
+    for (int i = 0; i < middle_operations.size(); i++) {
+        for (int j = i; j < middle_operations.size(); j++) {
+            if (i == j)
+                and(not_input1[j], input2[i], middle_operations[i]);
+            else
+                and(middle_operations[i], inputs_xnor[j], middle_operations[i]);
+        }
+    }
+
+    // Already adds the first wire from the middle operations to the output
+    output = middle_operations[0];
+
+    // Perfoms the final operations - ORs every single wire (if more than 1)
+    for (int i = 1; i < middle_operations.size(); i++)
+        or(middle_operations[i], output, output);
+}
+
+void gabe::circuits::generator::CircuitGenerator::smaller(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+    // Safety checks
+    _assert_equal_size(output, 1);
+
+    smaller(input1, input2, output[0]);
+}

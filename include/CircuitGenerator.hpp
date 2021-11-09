@@ -111,6 +111,8 @@ namespace gabe {
                 void equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
                 void greater(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output);
                 void greater(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
+                void smaller(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output);
+                void smaller(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
             };
         }
     }
