@@ -55,6 +55,16 @@ void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const Unsig
         throw std::invalid_argument("The inserted variables do not share the same size.");
 }
 
+void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const SignedVar& var, const uint64_t size) {
+    if (var.size() != size)
+        throw std::invalid_argument("The inserted variables do not share the same size.");
+}
+
+void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const UnsignedVar& var, const uint64_t size) {
+    if (var.size() != size)
+        throw std::invalid_argument("The inserted variables do not share the same size.");
+}
+
 void gabe::circuits::generator::CircuitGenerator::_write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate) {
     // Line construction
     std::string line = "1 1 " + std::to_string(input) + " " + std::to_string(output) + " " + gate + "\n";
@@ -387,4 +397,23 @@ void gabe::circuits::generator::CircuitGenerator::multiplexer(const UnsignedVar&
     // TODO - Think of a solution to make this possible without having this separated for cycle
     for (int i = 0; i < input1.size(); i++)
         or(and_in1[i], and_in2[i], output[i]);
+}
+
+void gabe::circuits::generator::CircuitGenerator::equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+    // Safety checks
+    _assert_equal_size(input1, input2); // TODO - Maybe this is not necessary since they can be equal with different sizes... (in some cases). Think in a different way.
+    _assert_equal_size(output, 1);
+
+    UnsignedVar inputs_xor(input1.size());
+    xor(input1, input2, inputs_xor);
+
+    // Already adds the first wire from the xor to the output
+    output[0] = inputs_xor[0];
+
+    // ORs every single wire (if more than 1)
+    for (int i = 1; i < inputs_xor.size(); i++)
+        or(inputs_xor[i], output[0], output[0]);
+
+    // Inverts the output result (Until here the output is 1 every time wires i-th from the inputs differ)
+    inv(output, output);
 }

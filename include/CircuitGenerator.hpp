@@ -54,6 +54,8 @@ namespace gabe {
 
                 void _assert_equal_size(const SignedVar& var1, const SignedVar& var2);
                 void _assert_equal_size(const UnsignedVar& var1, const UnsignedVar& var2);
+                void _assert_equal_size(const SignedVar& var, const uint64_t size);
+                void _assert_equal_size(const UnsignedVar& var, const uint64_t size);
 
                 void _write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate);
                 void _write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate);
@@ -102,8 +104,11 @@ namespace gabe {
                 //void division_quotient(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient);
                 //void division_remainder(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_remainder);
 
-                // Conditional operations
+                // Conditional unsigned operations
+                //void multiplexer(const Wire& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
                 void multiplexer(const UnsignedVar& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
+                //void equal(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output);
+                void equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
             };
         }
     }
