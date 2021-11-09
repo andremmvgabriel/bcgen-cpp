@@ -107,7 +107,7 @@ namespace gabe {
                 // Conditional unsigned operations
                 //void multiplexer(const Wire& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
                 void multiplexer(const UnsignedVar& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
-                //void equal(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output);
+                void equal(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output);
                 void equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
             };
         }
