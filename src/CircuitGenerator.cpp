@@ -518,3 +518,18 @@ void gabe::circuits::generator::CircuitGenerator::smaller(const UnsignedVar& inp
 
     smaller(input1, input2, output[0]);
 }
+
+void gabe::circuits::generator::CircuitGenerator::greater_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output) {
+    // Safety checks
+    _assert_equal_size(input1, input2);
+
+    smaller(input1, input2, output);
+    inv(output, output);
+}
+
+void gabe::circuits::generator::CircuitGenerator::greater_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+    // Safety checks
+    _assert_equal_size(output, 1);
+
+    greater_or_equal(input1, input2, output[0]);
+}
