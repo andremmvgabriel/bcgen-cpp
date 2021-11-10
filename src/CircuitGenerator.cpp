@@ -358,28 +358,36 @@ void gabe::circuits::generator::CircuitGenerator::multiplication(const UnsignedV
     }
 }
 
-//void gabe::circuits::generator::CircuitGenerator::division(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient, UnsignedVar& output_remainder) {
+void gabe::circuits::generator::CircuitGenerator::division(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient, UnsignedVar& output_remainder) {
     // Safety checks
-    //_assert_equal_size(input1, input2);
+    _assert_equal_size(input1, input2);
+    _assert_equal_size(input1, output_quotient);
+    _assert_equal_size(input1, output_remainder);
 
     // TODO - Temporary like this...
-    //assign_value(output_remainder, 0);
+    assign_value(output_remainder, 0);
 
     // Variable creations
-    //UnsignedVar zero(input1.size());
-    //UnsignedVar control(1);
-    //UnsignedVar substractor(input1.size());
+    UnsignedVar zero(input1.size());
+    UnsignedVar substractor(input1.size());
 
     // Variable value initializations
-    //assign_value(zero, 0);
+    assign_value(zero, 0);
 
-    //for (int i = 0; i < input1.size(); i++) {
-    //    shift_left(output_remainder, 1);
-    //    output_remainder[0] = input1[input1.size() - 1 - i];
+    // Control wires
+    Wire control;
 
-        // 
-    //}
-//}
+    for (int i = 0; i < input1.size(); i++) {
+        shift_left(output_remainder, 1);
+        output_remainder[0] = input1[input1.size() - 1 - i];
+
+        greater_or_equal(output_remainder, input2, control);
+        multiplexer(control, zero, input2, substractor);
+        subtraction(output_remainder, substractor, output_remainder); 
+
+        output_quotient[input1.size() - 1 - i] = control;
+    }
+}
 
 void gabe::circuits::generator::CircuitGenerator::multiplexer(const Wire& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
