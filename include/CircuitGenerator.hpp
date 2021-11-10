@@ -117,6 +117,8 @@ namespace gabe {
                 void greater_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
                 void smaller_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output);
                 void smaller_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
+                void comparator(const UnsignedVar& input1, const UnsignedVar& input2, Wire& out_equal, Wire& out_greater, Wire &out_smaller);
+                void comparator(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& out_equal, UnsignedVar& out_greater, UnsignedVar &out_smaller);
             };
         }
     }

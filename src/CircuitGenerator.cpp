@@ -548,3 +548,61 @@ void gabe::circuits::generator::CircuitGenerator::smaller_or_equal(const Unsigne
 
     smaller_or_equal(input1, input2, output[0]);
 }
+
+void gabe::circuits::generator::CircuitGenerator::comparator(const UnsignedVar& input1, const UnsignedVar& input2, Wire& out_equal, Wire& out_greater, Wire &out_smaller) {
+    // Safety checks
+    _assert_equal_size(input1, input2);
+
+    // Performs the initial operations
+    UnsignedVar not_input1(input1.size());
+    UnsignedVar not_input2(input2.size());
+    inv(input1, not_input1);
+    inv(input2, not_input2);
+
+    UnsignedVar inputs_xnor(input1.size());
+    // This is done like this instead of a simple xor and inv to the whole variables because the least significant wire from the inputs is not relevant for the xnor
+    for (int i = 1; i < input1.size(); i++) {
+        xor(input1[i], input2[i], inputs_xnor[i]);
+        inv(inputs_xnor[i], inputs_xnor[i]);
+    }
+
+    // Performs the operations between the ORs for both greater and smaller cases (see schematics)
+    UnsignedVar middle_operations_greater(input1.size());
+    UnsignedVar middle_operations_smaller(input1.size());
+    for (int i = 0; i < middle_operations_greater.size(); i++) {
+        for (int j = i; j < middle_operations_greater.size(); j++) {
+            if (i == j) {
+                and(input1[j], not_input2[i], middle_operations_greater[i]);
+                and(not_input1[j], input2[i], middle_operations_smaller[i]);
+            }
+            else {
+                and(middle_operations_greater[i], inputs_xnor[j], middle_operations_greater[i]);
+                and(middle_operations_smaller[i], inputs_xnor[j], middle_operations_smaller[i]);
+            }
+        }
+    }
+
+    // Already adds the first wire from the middle operations to each output
+    out_greater = middle_operations_greater[0];
+    out_smaller = middle_operations_smaller[0];
+
+    // Perfoms the final operations - ORs every single wire (if more than 1)
+    for (int i = 1; i < middle_operations_greater.size(); i++) {
+        or(middle_operations_greater[i], out_greater, out_greater);
+        or(middle_operations_smaller[i], out_smaller, out_smaller);
+    }
+
+    or(out_greater, out_smaller, out_equal);
+    inv(out_equal, out_equal);
+
+    // TODO - I can't make this function have the very last wires as out_greater, out_smaller, and out_equal, as it requires the OR operation of out_greater and out_smaller to get the out_equal.
+}
+
+void gabe::circuits::generator::CircuitGenerator::comparator(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& out_equal, UnsignedVar& out_greater, UnsignedVar &out_smaller) {
+    // Safety checks
+    _assert_equal_size(out_equal, 1);
+    _assert_equal_size(out_greater, 1);
+    _assert_equal_size(out_smaller, 1);
+
+    comparator(input1, input2, out_equal[0], out_greater[0], out_smaller[0]);
+}
