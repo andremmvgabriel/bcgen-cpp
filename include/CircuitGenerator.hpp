@@ -123,8 +123,8 @@ namespace gabe {
                 void division_remainder(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_remainder);
 
                 // Conditional signed operations
-                //void multiplexer(const Wire& control, const SignedVar& input1, const SignedVar& input2, SignedVar& output);
-                //void multiplexer(const SignedVar& control, const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                void multiplexer(const Wire& control, const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                void multiplexer(const SignedVar& control, const SignedVar& input1, const SignedVar& input2, SignedVar& output);
                 //void equal(const SignedVar& input1, const SignedVar& input2, Wire& output);
                 //void equal(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
                 //void greater(const SignedVar& input1, const SignedVar& input2, Wire& output);
