@@ -106,6 +106,14 @@ namespace gabe {
                 void inv(const UnsignedVar& input, UnsignedVar& output);
                 void or(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
 
+                // Arithmetic signed operations
+                //void addition(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                //void subtraction(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                //void multiplication(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                //void division(const SignedVar& input1, const SignedVar& input2, SignedVar& output_quotient, SignedVar& output_remainder);
+                //void division_quotient(const SignedVar& input1, const SignedVar& input2, SignedVar& output_quotient);
+                //void division_remainder(const SignedVar& input1, const SignedVar& input2, SignedVar& output_remainder);
+
                 // Arithmetic unsigned operations
                 void addition(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
                 void subtraction(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
@@ -113,6 +121,22 @@ namespace gabe {
                 void division(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient, UnsignedVar& output_remainder);
                 void division_quotient(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient);
                 void division_remainder(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_remainder);
+
+                // Conditional signed operations
+                //void multiplexer(const Wire& control, const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                //void multiplexer(const SignedVar& control, const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                //void equal(const SignedVar& input1, const SignedVar& input2, Wire& output);
+                //void equal(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                //void greater(const SignedVar& input1, const SignedVar& input2, Wire& output);
+                //void greater(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                //void smaller(const SignedVar& input1, const SignedVar& input2, Wire& output);
+                //void smaller(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                //void greater_or_equal(const SignedVar& input1, const SignedVar& input2, Wire& output);
+                //void greater_or_equal(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                //void smaller_or_equal(const SignedVar& input1, const SignedVar& input2, Wire& output);
+                //void smaller_or_equal(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                //void comparator(const SignedVar& input1, const SignedVar& input2, Wire& out_equal, Wire& out_greater, Wire &out_smaller);
+                //void comparator(const SignedVar& input1, const SignedVar& input2, SignedVar& out_equal, SignedVar& out_greater, SignedVar &out_smaller);
 
                 // Conditional unsigned operations
                 void multiplexer(const Wire& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);

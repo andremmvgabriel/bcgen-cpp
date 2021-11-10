@@ -43,6 +43,7 @@ void gabe::circuits::generator::CircuitGenerator::_close_files() {
 
     // Removes the temporary file from the system
     //remove((_circuits_directory + _temp_circuit_name + ".txt").c_str() );
+    // TODO - UNCOMENT PREVIOUS LINE
 }
 
 void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const SignedVar& var1, const SignedVar& var2) {
