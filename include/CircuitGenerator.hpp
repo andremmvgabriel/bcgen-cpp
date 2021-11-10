@@ -112,7 +112,7 @@ namespace gabe {
                 void multiplication(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
                 void division(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient, UnsignedVar& output_remainder);
                 //void division_quotient(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient);
-                //void division_remainder(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_remainder);
+                void division_remainder(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_remainder);
 
                 // Conditional unsigned operations
                 void multiplexer(const Wire& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);

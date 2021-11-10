@@ -439,6 +439,12 @@ void gabe::circuits::generator::CircuitGenerator::division(const UnsignedVar& in
     }
 }
 
+void gabe::circuits::generator::CircuitGenerator::division_remainder(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_remainder) {
+    UnsignedVar quotient(output_remainder.size());
+
+    division(input1, input2, quotient, output_remainder);
+}
+
 void gabe::circuits::generator::CircuitGenerator::multiplexer(const Wire& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
