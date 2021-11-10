@@ -147,6 +147,24 @@ void gabe::circuits::generator::CircuitGenerator::shift_right(UnsignedVar &varia
         variable[i] = _zero_wire;
 }
 
+void gabe::circuits::generator::CircuitGenerator::rotate_left(SignedVar &variable, uint64_t amount) {
+    SignedVar temp = variable;
+
+    for (uint64_t i = 0; i < variable.size(); i++) {
+        uint64_t j = (i + amount) % variable.size();
+        variable[i] = temp[j];
+    }
+}
+
+void gabe::circuits::generator::CircuitGenerator::rotate_left(UnsignedVar &variable, uint64_t amount) {
+    UnsignedVar temp = variable;
+
+    for (uint64_t i = 0; i < variable.size(); i++) {
+        uint64_t j = (i + amount) % variable.size();
+        variable[i] = temp[j];
+    }
+}
+
 void gabe::circuits::generator::CircuitGenerator::xor(const Wire& input1, const Wire& input2, Wire& output) {
     _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["xor"] );
 

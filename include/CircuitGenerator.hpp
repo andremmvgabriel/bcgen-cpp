@@ -79,6 +79,8 @@ namespace gabe {
                 void shift_right(UnsignedVar &variable, uint64_t amount);
 
                 // Rotators
+                void rotate_left(SignedVar &variable, uint64_t amount);
+                void rotate_left(UnsignedVar &variable, uint64_t amount);
 
                 // Inverters
 
