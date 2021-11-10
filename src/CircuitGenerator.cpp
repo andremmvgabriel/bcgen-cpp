@@ -439,6 +439,39 @@ void gabe::circuits::generator::CircuitGenerator::division(const UnsignedVar& in
     }
 }
 
+void gabe::circuits::generator::CircuitGenerator::division_quotient(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient) {
+    // Safety checks
+    _assert_equal_size(input1, input2);
+    _assert_equal_size(input1, output_quotient);
+
+    // Variable creations
+    UnsignedVar remainder(output_quotient.size());
+    UnsignedVar zero(input1.size());
+    UnsignedVar substractor(input1.size());
+
+    // Variable value initializations
+    assign_value(remainder, 0);
+    assign_value(zero, 0);
+
+    // Control wires
+    Wire control;
+
+    for (int i = 0; i < input1.size(); i++) {
+        shift_left(remainder, 1);
+        remainder[0] = input1[input1.size() - 1 - i];
+
+        greater_or_equal(remainder, input2, control);
+
+        // This is done like this because the remainder isn't of importance in the very last iteration (Otherwise we would be writting unnecessary operations in the circuit file)
+        if (i != input1.size() - 1) {
+            multiplexer(control, zero, input2, substractor);
+            subtraction(remainder, substractor, remainder);
+        }
+
+        output_quotient[input1.size() - 1 - i] = control;
+    }
+}
+
 void gabe::circuits::generator::CircuitGenerator::division_remainder(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_remainder) {
     UnsignedVar quotient(output_remainder.size());
 
