@@ -72,25 +72,45 @@ namespace gabe {
                 void assign_value(SignedVar& variable, int64_t value);
                 void assign_value(UnsignedVar& variable, uint64_t value);
 
-                // Shifters
+                // Shifters - Overrides the given variable
                 void shift_left(SignedVar& variable, uint64_t amount);
                 void shift_left(UnsignedVar& variable, uint64_t amount);
                 void shift_right(SignedVar& variable, uint64_t amount);
                 void shift_right(UnsignedVar& variable, uint64_t amount);
 
-                // Rotators
+                // Shifters - Without overriding the given variable
+                //void shift_left(const SignedVar& variable, uint64_t amount, SignedVar& output);
+                //void shift_left(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output);
+                //void shift_right(const SignedVar& variable, uint64_t amount, SignedVar& output);
+                //void shift_right(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output);
+
+                // Rotators - Overrides the given variable
                 void rotate_left(SignedVar& variable, uint64_t amount);
                 void rotate_left(UnsignedVar& variable, uint64_t amount);
                 void rotate_right(SignedVar& variable, uint64_t amount);
                 void rotate_right(UnsignedVar& variable, uint64_t amount);
 
-                // Flipers
+                // Rotators - Without overriding the given variable
+                //void rotate_left(const SignedVar& variable, uint64_t amount, SignedVar& output);
+                //void rotate_left(const UnsignedVar& variable, uint64_t amount, SignedVar& output);
+                //void rotate_right(const SignedVar& variable, uint64_t amount, SignedVar& output);
+                //void rotate_right(const UnsignedVar& variable, uint64_t amount, SignedVar& output);
+
+                // Flipers - Overrides the given variable
                 void flip(SignedVar& variable);
                 void flip(UnsignedVar& variable);
+                
+                // Flipers - Without overriding the given variable
+                //void flip(const SignedVar& variable, SignedVar& output);
+                //void flip(const UnsignedVar& variable, UnsignedVar& output);
 
-                // Complements
-                void twos_complement(const SignedVar& input, SignedVar& output);
-                void twos_complement(const UnsignedVar& input, UnsignedVar& output);
+                // Complements - Overrides the given variable
+                //void twos_complement(SignedVar& variable);
+                //void twos_complement(UnsignedVar& variable);
+
+                // Complements - Without overriding the given variable
+                //void twos_complement(const SignedVar& variable, SignedVar& output);
+                void twos_complement(const UnsignedVar& variable, UnsignedVar& output);
 
                 // Basic wire operations
                 void xor(const Wire& input1, const Wire& input2, Wire& output);

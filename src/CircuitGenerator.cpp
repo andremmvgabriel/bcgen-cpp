@@ -200,9 +200,9 @@ void gabe::circuits::generator::CircuitGenerator::flip(UnsignedVar& variable) {
 
 //void gabe::circuits::generator::CircuitGenerator::twos_complement(const SignedVar& input, SignedVar& output) {}
 
-void gabe::circuits::generator::CircuitGenerator::twos_complement(const UnsignedVar& input, UnsignedVar& output) {
+void gabe::circuits::generator::CircuitGenerator::twos_complement(const UnsignedVar& variable, UnsignedVar& output) {
     // Safety checks
-    _assert_equal_size(input, output);
+    _assert_equal_size(variable, output);
 
     // Variable creations
     UnsignedVar one(output.size());
@@ -211,7 +211,7 @@ void gabe::circuits::generator::CircuitGenerator::twos_complement(const Unsigned
     assign_value(one, 1);
 
     // Algorithm
-    inv(input, output);
+    inv(variable, output);
     addition(one, output, output);
 }
 
