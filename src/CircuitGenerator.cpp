@@ -510,6 +510,31 @@ void gabe::circuits::generator::CircuitGenerator::multiplexer(const SignedVar& c
     multiplexer(control[0], input1, input2, output);
 }
 
+void gabe::circuits::generator::CircuitGenerator::equal(const SignedVar& input1, const SignedVar& input2, Wire& output) {
+    // Safety checks
+    _assert_equal_size(input1, input2);
+
+    SignedVar inputs_xor(input1.size());
+    xor(input1, input2, inputs_xor);
+
+    // Already adds the first wire from the xor to the output
+    output = inputs_xor[0];
+
+    // ORs every single wire (if more than 1)
+    for (int i = 1; i < inputs_xor.size(); i++)
+        or(inputs_xor[i], output, output);
+
+    // Inverts the output result (Until here the output is 1 every time wires i-th from the inputs differ)
+    inv(output, output);
+}
+
+void gabe::circuits::generator::CircuitGenerator::equal(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
+    // Safety checks
+    _assert_equal_size(output, 1);
+
+    equal(input1, input1, output[0]);
+}
+
 void gabe::circuits::generator::CircuitGenerator::multiplexer(const Wire& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
