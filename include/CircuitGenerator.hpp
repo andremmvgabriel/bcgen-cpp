@@ -106,7 +106,7 @@ namespace gabe {
 
                 // Complements - Overrides the given variable
                 //void twos_complement(SignedVar& variable);
-                //void twos_complement(UnsignedVar& variable);
+                void twos_complement(UnsignedVar& variable);
 
                 // Complements - Without overriding the given variable
                 //void twos_complement(const SignedVar& variable, SignedVar& output);
