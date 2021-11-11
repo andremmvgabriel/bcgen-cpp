@@ -204,6 +204,26 @@ void gabe::circuits::generator::CircuitGenerator::rotate_right(UnsignedVar &vari
     }
 }
 
+void gabe::circuits::generator::CircuitGenerator::rotate_left(const SignedVar& variable, uint64_t amount, SignedVar& output) {
+    output = variable;
+    rotate_left(output, amount);
+}
+
+void gabe::circuits::generator::CircuitGenerator::rotate_left(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output) {
+    output = variable;
+    rotate_left(output, amount);
+}
+
+void gabe::circuits::generator::CircuitGenerator::rotate_right(const SignedVar& variable, uint64_t amount, SignedVar& output) {
+    output = variable;
+    rotate_right(output, amount);
+}
+
+void gabe::circuits::generator::CircuitGenerator::rotate_right(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output) {
+    output = variable;
+    rotate_right(output, amount);
+}
+
 void gabe::circuits::generator::CircuitGenerator::flip(SignedVar& variable) {
     SignedVar temp = variable;
 
