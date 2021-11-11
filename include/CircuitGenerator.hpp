@@ -105,11 +105,11 @@ namespace gabe {
                 void flip(const UnsignedVar& variable, UnsignedVar& output);
 
                 // Complements - Overrides the given variable
-                //void twos_complement(SignedVar& variable);
+                void twos_complement(SignedVar& variable);
                 void twos_complement(UnsignedVar& variable);
 
                 // Complements - Without overriding the given variable
-                //void twos_complement(const SignedVar& variable, SignedVar& output);
+                void twos_complement(const SignedVar& variable, SignedVar& output);
                 void twos_complement(const UnsignedVar& variable, UnsignedVar& output);
 
                 // Basic wire operations
