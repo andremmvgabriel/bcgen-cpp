@@ -79,10 +79,10 @@ namespace gabe {
                 void shift_right(UnsignedVar& variable, uint64_t amount);
 
                 // Shifters - Without overriding the given variable
-                //void shift_left(const SignedVar& variable, uint64_t amount, SignedVar& output);
-                //void shift_left(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output);
-                //void shift_right(const SignedVar& variable, uint64_t amount, SignedVar& output);
-                //void shift_right(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output);
+                void shift_left(const SignedVar& variable, uint64_t amount, SignedVar& output);
+                void shift_left(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output);
+                void shift_right(const SignedVar& variable, uint64_t amount, SignedVar& output);
+                void shift_right(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output);
 
                 // Rotators - Overrides the given variable
                 void rotate_left(SignedVar& variable, uint64_t amount);
