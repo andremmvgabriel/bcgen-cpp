@@ -198,6 +198,23 @@ void gabe::circuits::generator::CircuitGenerator::flip(UnsignedVar& variable) {
         variable[i] = temp[variable.size() - 1 - i];
 }
 
+//void gabe::circuits::generator::CircuitGenerator::twos_complement(const SignedVar& input, SignedVar& output) {}
+
+void gabe::circuits::generator::CircuitGenerator::twos_complement(const UnsignedVar& input, UnsignedVar& output) {
+    // Safety checks
+    _assert_equal_size(input, output);
+
+    // Variable creations
+    UnsignedVar one(output.size());
+
+    // Variable value initializations
+    assign_value(one, 1);
+
+    // Algorithm
+    inv(input, output);
+    addition(one, output, output);
+}
+
 void gabe::circuits::generator::CircuitGenerator::xor(const Wire& input1, const Wire& input2, Wire& output) {
     _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["xor"] );
 

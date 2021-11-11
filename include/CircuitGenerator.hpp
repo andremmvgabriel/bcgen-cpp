@@ -88,6 +88,10 @@ namespace gabe {
                 void flip(SignedVar& variable);
                 void flip(UnsignedVar& variable);
 
+                // Complements
+                void twos_complement(const SignedVar& input, SignedVar& output);
+                void twos_complement(const UnsignedVar& input, UnsignedVar& output);
+
                 // Basic wire operations
                 void xor(const Wire& input1, const Wire& input2, Wire& output);
                 void and(const Wire& input1, const Wire& input2, Wire& output);
