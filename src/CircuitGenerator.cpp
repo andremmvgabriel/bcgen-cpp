@@ -238,6 +238,16 @@ void gabe::circuits::generator::CircuitGenerator::flip(UnsignedVar& variable) {
         variable[i] = temp[variable.size() - 1 - i];
 }
 
+void gabe::circuits::generator::CircuitGenerator::flip(const SignedVar& variable, SignedVar& output) {
+    output = variable;
+    flip(output);
+}
+
+void gabe::circuits::generator::CircuitGenerator::flip(const UnsignedVar& variable, UnsignedVar& output) {
+    output = variable;
+    flip(output);
+}
+
 //void gabe::circuits::generator::CircuitGenerator::twos_complement(const SignedVar& input, SignedVar& output) {}
 
 void gabe::circuits::generator::CircuitGenerator::twos_complement(const UnsignedVar& variable, UnsignedVar& output) {

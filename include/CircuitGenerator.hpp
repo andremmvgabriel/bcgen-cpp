@@ -101,8 +101,8 @@ namespace gabe {
                 void flip(UnsignedVar& variable);
                 
                 // Flipers - Without overriding the given variable
-                //void flip(const SignedVar& variable, SignedVar& output);
-                //void flip(const UnsignedVar& variable, UnsignedVar& output);
+                void flip(const SignedVar& variable, SignedVar& output);
+                void flip(const UnsignedVar& variable, UnsignedVar& output);
 
                 // Complements - Overrides the given variable
                 //void twos_complement(SignedVar& variable);
