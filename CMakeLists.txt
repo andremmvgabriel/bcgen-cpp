@@ -20,6 +20,7 @@ set( src_generator_lib
     src/SignedVar.cpp
     src/UnsignedVar.cpp
     src/CircuitGenerator.cpp
+    src/BristolCircuitGenerator.cpp
 )
 add_library( BooleanCircuitGenerator STATIC ${src_generator_lib} )
 

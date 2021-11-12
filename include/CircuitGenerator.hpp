@@ -60,7 +60,7 @@ namespace gabe {
                 void _write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate);
                 void _write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate);
 
-            public: // After tests put as protected
+            protected:
                 CircuitGenerator();
             
                 CircuitGenerator(const std::string &circuit_name, const std::vector<uint64_t>& wires_per_input_party, const std::vector<uint64_t>& wires_per_output_party, const std::string &circuits_directory = std::string());
