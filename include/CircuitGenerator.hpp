@@ -57,6 +57,9 @@ namespace gabe {
                 void _assert_equal_size(const SignedVar& var, const uint64_t size);
                 void _assert_equal_size(const UnsignedVar& var, const uint64_t size);
 
+                virtual void _write_header();
+                virtual void _write_circuit();
+
                 void _write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate);
                 void _write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate);
 
