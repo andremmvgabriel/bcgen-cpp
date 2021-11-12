@@ -21,6 +21,7 @@ set( src_generator_lib
     src/UnsignedVar.cpp
     src/CircuitGenerator.cpp
     src/BristolCircuitGenerator.cpp
+    src/LibscapiCircuitGenerator.cpp
 )
 add_library( BooleanCircuitGenerator STATIC ${src_generator_lib} )
 
