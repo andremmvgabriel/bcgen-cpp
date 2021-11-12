@@ -8,8 +8,6 @@ gabe::circuits::generator::CircuitGenerator::CircuitGenerator(const std::string 
 }
 
 gabe::circuits::generator::CircuitGenerator::~CircuitGenerator() {
-    // TODO - FIND A BETTER PLACE TO MAKE THE CIRCUIT WRITING
-    _write_circuit();
     _close_files();
 }
 
@@ -47,6 +45,26 @@ void gabe::circuits::generator::CircuitGenerator::_close_files() {
     remove((_circuits_directory + _temp_circuit_name + ".txt").c_str() );
 }
 
+void gabe::circuits::generator::CircuitGenerator::_write_header() {}
+
+void gabe::circuits::generator::CircuitGenerator::_write_header_info() {}
+
+void gabe::circuits::generator::CircuitGenerator::_write_header_inputs() {}
+
+void gabe::circuits::generator::CircuitGenerator::_write_header_outputs() {}
+
+void gabe::circuits::generator::CircuitGenerator::_write_circuit() {
+    // Places the reading pointer in the beginning of the temporary file
+    _temp_circuit.seekg(0);
+
+    // Reads all the lines and writes them into the circuit file
+    std::string line;
+    while (std::getline(_temp_circuit, line)) {
+        line += "\n";
+        _circuit.write(line.c_str(), line.size());
+    }
+}
+
 void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const SignedVar& var1, const SignedVar& var2) {
     if (var1.size() != var2.size())
         throw std::invalid_argument("The inserted variables do not share the same size.");
@@ -65,20 +83,6 @@ void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const Signe
 void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const UnsignedVar& var, const uint64_t size) {
     if (var.size() != size)
         throw std::invalid_argument("The inserted variables do not share the same size.");
-}
-
-void gabe::circuits::generator::CircuitGenerator::_write_header() {}
-
-void gabe::circuits::generator::CircuitGenerator::_write_circuit() {
-    // Places the reading pointer in the beginning of the temporary file
-    _temp_circuit.seekg(0);
-
-    // Reads all the lines and writes them into the circuit file
-    std::string line;
-    while (std::getline(_temp_circuit, line)) {
-        line += "\n";
-        _circuit.write(line.c_str(), line.size());
-    }
 }
 
 void gabe::circuits::generator::CircuitGenerator::_write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate) {
@@ -101,6 +105,11 @@ void gabe::circuits::generator::CircuitGenerator::_write_2_1_gate(const uint64_t
 
     // Writting...
     _temp_circuit.write( line.c_str(), line.size() );
+}
+
+void gabe::circuits::generator::CircuitGenerator::stop() {
+    _write_header();
+    _write_circuit();
 }
 
 void gabe::circuits::generator::CircuitGenerator::assign_value(SignedVar& variable, int64_t value) {

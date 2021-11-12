@@ -57,9 +57,6 @@ namespace gabe {
                 void _assert_equal_size(const SignedVar& var, const uint64_t size);
                 void _assert_equal_size(const UnsignedVar& var, const uint64_t size);
 
-                virtual void _write_header();
-                virtual void _write_circuit();
-
                 void _write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate);
                 void _write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate);
 
@@ -70,7 +67,18 @@ namespace gabe {
 
                 ~CircuitGenerator();
 
+                virtual void _write_header();
+                virtual void _write_header_info();
+                virtual void _write_header_inputs();
+                virtual void _write_header_outputs();
+                virtual void _write_circuit();
+
             public:
+                //void start();
+                void stop();
+                // Add input
+                // Add output
+
                 // Values assignment
                 void assign_value(SignedVar& variable, int64_t value);
                 void assign_value(UnsignedVar& variable, uint64_t value);

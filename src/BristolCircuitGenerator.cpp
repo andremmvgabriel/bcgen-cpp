@@ -9,3 +9,42 @@ gabe::circuits::generator::BristolCircuitGenerator::BristolCircuitGenerator(cons
     _gates_map["inv"] = "INV";
     _gates_map["or"] = "OR";
 }
+
+void gabe::circuits::generator::BristolCircuitGenerator::_write_header() {
+    _write_header_info();
+    _write_header_inputs();
+    _write_header_outputs();
+
+    std::string empty_line = "\n";
+    _circuit.write(empty_line.c_str(), empty_line.size());
+}
+
+void gabe::circuits::generator::BristolCircuitGenerator::_write_header_info() {
+    uint64_t number_gates = _counter_and_gates + _counter_xor_gates + _counter_inv_gates + _counter_or_gates;
+
+    std::string line = std::to_string(number_gates) + " " + std::to_string(_counter_wires) + "\n";
+
+    _circuit.write( line.c_str(), line.size() );
+}
+
+void gabe::circuits::generator::BristolCircuitGenerator::_write_header_inputs() {
+    std::string line = std::to_string(_wires_per_input_party.size());
+
+    for (auto & amount : _wires_per_input_party)
+        line += " " + std::to_string(amount);
+    
+    line += "\n";
+
+    _circuit.write( line.c_str(), line.size() );
+}
+
+void gabe::circuits::generator::BristolCircuitGenerator::_write_header_outputs() {
+    std::string line = std::to_string(_wires_per_output_party.size());
+
+    for (auto & amount : _wires_per_output_party)
+        line += " " + std::to_string(amount);
+    
+    line += "\n";
+
+    _circuit.write( line.c_str(), line.size() );
+}
