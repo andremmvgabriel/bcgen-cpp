@@ -27,7 +27,7 @@ void circuit(circGen* generator) {
     generator->start();
 
     // Function / Algorithm
-    generator->xor(input1, input2, output);
+    generator->and(input1, input2, output);
 
     // Stops the circuit writting
     generator->stop();
