@@ -5,6 +5,10 @@ gabe::circuits::generator::CircuitGenerator::CircuitGenerator() {}
 gabe::circuits::generator::CircuitGenerator::CircuitGenerator(const std::string &circuit_name, const std::vector<uint64_t>& wires_per_input_party, const std::vector<uint64_t>& wires_per_output_party, const std::string &circuits_directory) : _circuit_name(circuit_name), _temp_circuit_name(_circuit_name+"_temp"), _wires_per_input_party(wires_per_input_party), _wires_per_output_party(wires_per_output_party), _circuits_directory(circuits_directory) {
     _create_save_directory();
     _open_files();
+
+    // Registers the expected amount of input and output wires
+    for (auto & amount : wires_per_input_party) _expected_input_wires += amount;
+    for (auto & amount : wires_per_output_party) _expected_output_wires += amount;
 }
 
 gabe::circuits::generator::CircuitGenerator::~CircuitGenerator() {
@@ -65,6 +69,16 @@ void gabe::circuits::generator::CircuitGenerator::_write_circuit() {
     }
 }
 
+void gabe::circuits::generator::CircuitGenerator::_assert_valid_add_input() {
+    if (_counter_wires >= _expected_input_wires)
+        throw std::runtime_error("There aren't enough input wires available. Make sure the specified input wires for each party are correct.");
+}
+
+void gabe::circuits::generator::CircuitGenerator::_assert_valid_start() {
+    if (_counter_wires < _expected_input_wires)
+        throw std::runtime_error("There aren't enough input wires added to the circuit. Make sure the specified input wires for each party are correct or add more input wires.");
+}
+
 void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const SignedVar& var1, const SignedVar& var2) {
     if (var1.size() != var2.size())
         throw std::invalid_argument("The inserted variables do not share the same size.");
@@ -105,6 +119,36 @@ void gabe::circuits::generator::CircuitGenerator::_write_2_1_gate(const uint64_t
 
     // Writting...
     _temp_circuit.write( line.c_str(), line.size() );
+}
+
+void gabe::circuits::generator::CircuitGenerator::add_input(Wire& wire) {
+    // Safety check
+    _assert_valid_add_input();
+    
+    // Assigns a label to the wire
+    wire.label = _counter_wires++;
+}
+
+void gabe::circuits::generator::CircuitGenerator::add_input(SignedVar& variable) {
+    for (int i = 0; i < variable.size(); i++)
+        add_input( variable[i] );
+}
+
+void gabe::circuits::generator::CircuitGenerator::add_input(UnsignedVar& variable) {
+    for (int i = 0; i < variable.size(); i++)
+        add_input( variable[i] );
+}
+
+void gabe::circuits::generator::CircuitGenerator::start() {
+    // Safety check
+    _assert_valid_start();
+
+    // Circuit is valid to be generated
+    valid = true;
+
+    // Creates the zero and one wires
+    xor( Wire(), Wire(), _zero_wire );
+    inv( _zero_wire, _zero_wire ); 
 }
 
 void gabe::circuits::generator::CircuitGenerator::stop() {

@@ -47,10 +47,18 @@ namespace gabe {
                 Wire _zero_wire; // Wire that is always zero in the circuit
                 Wire _one_wire; // Wire that is always one in the circuit
 
+                // Control variables
+                bool valid = false;
+                uint64_t _expected_input_wires = 0x00;
+                uint64_t _expected_output_wires = 0x00;
+
             private:
                 void _create_save_directory();
                 void _open_files();
                 void _close_files();
+
+                void _assert_valid_add_input();
+                void _assert_valid_start();
 
                 void _assert_equal_size(const SignedVar& var1, const SignedVar& var2);
                 void _assert_equal_size(const UnsignedVar& var1, const UnsignedVar& var2);
@@ -74,10 +82,15 @@ namespace gabe {
                 virtual void _write_circuit();
 
             public:
-                //void start();
+                // Inputs
+                void add_input(Wire& wire);
+                void add_input(SignedVar& variable);
+                void add_input(UnsignedVar& variable);
+
+                // Outputs
+
+                void start();
                 void stop();
-                // Add input
-                // Add output
 
                 // Values assignment
                 void assign_value(SignedVar& variable, int64_t value);
