@@ -10,3 +10,8 @@ target_link_libraries( AND_Circuit BooleanCircuitGenerator )
 
 add_executable( INV_Circuit INV.cpp )
 target_link_libraries( INV_Circuit BooleanCircuitGenerator )
+
+# ======
+
+add_executable( OR_Circuit OR.cpp )
+target_link_libraries( OR_Circuit BooleanCircuitGenerator )
