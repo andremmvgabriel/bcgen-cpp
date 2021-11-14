@@ -49,8 +49,8 @@ void generate_bristol() {
 void generate_libscapi() {
     libscapiGen generator(
         "AND_circuit",
-        {8, 8},
-        {8}
+        {PARTY1_SIZE, PARTY2_SIZE},
+        {OUTPUT_SIZE}
     );
 
     circuit(&generator);
