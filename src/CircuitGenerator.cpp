@@ -154,6 +154,9 @@ void gabe::circuits::generator::CircuitGenerator::start() {
 void gabe::circuits::generator::CircuitGenerator::stop() {
     _write_header();
     _write_circuit();
+
+    // Circuit is no longer valid to be increased
+    valid = false;
 }
 
 void gabe::circuits::generator::CircuitGenerator::assign_value(SignedVar& variable, int64_t value) {
