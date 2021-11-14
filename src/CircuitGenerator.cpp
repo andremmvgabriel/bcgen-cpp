@@ -69,6 +69,11 @@ void gabe::circuits::generator::CircuitGenerator::_write_circuit() {
     }
 }
 
+void gabe::circuits::generator::CircuitGenerator::_assert_valid() {
+    if (!valid)
+        throw std::runtime_error("The generator is yet not valid. Make sure you have inserted all the specified input wires and use the start() function before starting the writting of the algorithm.");
+}
+
 void gabe::circuits::generator::CircuitGenerator::_assert_valid_add_input() {
     if (_counter_wires >= _expected_input_wires)
         throw std::runtime_error("There aren't enough input wires available. Make sure the specified input wires for each party are correct.");
@@ -100,6 +105,9 @@ void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const Unsig
 }
 
 void gabe::circuits::generator::CircuitGenerator::_write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate) {
+    // Safety check
+    _assert_valid();
+
     // Line construction
     std::string line = "1 1 " + std::to_string(input) + " " + std::to_string(output) + " " + gate + "\n";
 
@@ -108,6 +116,9 @@ void gabe::circuits::generator::CircuitGenerator::_write_1_1_gate(const uint64_t
 }
 
 void gabe::circuits::generator::CircuitGenerator::_write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate) {
+    // Safety check
+    _assert_valid();
+    
     // Input 1 should contain the smallest label input wire
     std::string in1 = input1 < input2 ? std::to_string(input1) : std::to_string(input2);
 

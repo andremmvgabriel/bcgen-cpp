@@ -57,6 +57,7 @@ namespace gabe {
                 void _open_files();
                 void _close_files();
 
+                void _assert_valid();
                 void _assert_valid_add_input();
                 void _assert_valid_start();
 
