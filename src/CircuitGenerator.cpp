@@ -118,7 +118,7 @@ void gabe::circuits::generator::CircuitGenerator::_write_1_1_gate(const uint64_t
 void gabe::circuits::generator::CircuitGenerator::_write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate) {
     // Safety check
     _assert_valid();
-    
+
     // Input 1 should contain the smallest label input wire
     std::string in1 = input1 < input2 ? std::to_string(input1) : std::to_string(input2);
 
@@ -148,6 +148,18 @@ void gabe::circuits::generator::CircuitGenerator::add_input(SignedVar& variable)
 void gabe::circuits::generator::CircuitGenerator::add_input(UnsignedVar& variable) {
     for (int i = 0; i < variable.size(); i++)
         add_input( variable[i] );
+}
+
+void gabe::circuits::generator::CircuitGenerator::add_output(Wire& wire) {}
+
+void gabe::circuits::generator::CircuitGenerator::add_output(SignedVar& variable) {
+    for (int i = 0; i < variable.size(); i++)
+        add_output( variable[i] );
+}
+
+void gabe::circuits::generator::CircuitGenerator::add_output(UnsignedVar& variable) {
+    for (int i = 0; i < variable.size(); i++)
+        add_output( variable[i] );
 }
 
 void gabe::circuits::generator::CircuitGenerator::start() {

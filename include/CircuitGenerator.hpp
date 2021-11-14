@@ -89,6 +89,9 @@ namespace gabe {
                 void add_input(UnsignedVar& variable);
 
                 // Outputs
+                void add_output(Wire& wire);
+                void add_output(SignedVar& wire);
+                void add_output(UnsignedVar& wire);
 
                 void start();
                 void stop();
