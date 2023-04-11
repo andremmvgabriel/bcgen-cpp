@@ -1,4 +1,5 @@
 #include <CircuitGenerator.hpp>
+#include <filesystem>
 
 gabe::circuits::generator::CircuitGenerator::CircuitGenerator() {}
 
@@ -23,7 +24,7 @@ void gabe::circuits::generator::CircuitGenerator::_create_save_directory() {
     _circuits_directory = std::filesystem::current_path().string() + "/circuits/";
 
     // Create circuits directory in current directory
-    _mkdir(_circuits_directory.c_str());
+    std::filesystem::create_directory(_circuits_directory);
 }
 
 void gabe::circuits::generator::CircuitGenerator::_open_files() {
@@ -170,8 +171,8 @@ void gabe::circuits::generator::CircuitGenerator::start() {
     valid = true;
 
     // Creates the zero and one wires
-    xor( Wire(), Wire(), _zero_wire );
-    inv( _zero_wire, _zero_wire ); 
+    XOR( Wire(), Wire(), _zero_wire );
+    INV( _zero_wire, _zero_wire ); 
 }
 
 void gabe::circuits::generator::CircuitGenerator::stop() {
@@ -228,7 +229,7 @@ void gabe::circuits::generator::CircuitGenerator::shift_right(SignedVar &variabl
         variable[i] = variable[i + amount];
     
     // Assign 0 to the new wires
-    for (int64_t i = variable.size() - 1i64; i > (int64_t)variable.size() - 1i64 - (int64_t)amount && i >= 0; i--)
+    for (int64_t i = variable.size() - 1; i > (int64_t)variable.size() - 1 - (int64_t)amount && i >= 0; i--)
         variable[i] = _zero_wire;
 }
 
@@ -238,7 +239,7 @@ void gabe::circuits::generator::CircuitGenerator::shift_right(UnsignedVar &varia
         variable[i] = variable[i + amount];
     
     // Assign 0 to the new wires
-    for (int64_t i = variable.size() - 1i64; i > (int64_t)variable.size() - 1i64 - (int64_t)amount && i >= 0; i--)
+    for (int64_t i = variable.size() - 1; i > (int64_t)variable.size() - 1 - (int64_t)amount && i >= 0; i--)
         variable[i] = _zero_wire;
 }
 
@@ -354,7 +355,7 @@ void gabe::circuits::generator::CircuitGenerator::twos_complement(UnsignedVar& v
     assign_value(one, 1);
 
     // Algorithm
-    inv(variable, variable);
+    INV(variable, variable);
     addition(one, variable, variable);
 }
 
@@ -368,7 +369,7 @@ void gabe::circuits::generator::CircuitGenerator::twos_complement(const Unsigned
     twos_complement(output);
 }
 
-void gabe::circuits::generator::CircuitGenerator::xor(const Wire& input1, const Wire& input2, Wire& output) {
+void gabe::circuits::generator::CircuitGenerator::XOR(const Wire& input1, const Wire& input2, Wire& output) {
     _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["xor"] );
 
     output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
@@ -378,7 +379,7 @@ void gabe::circuits::generator::CircuitGenerator::xor(const Wire& input1, const 
     _counter_xor_gates++;
 }
 
-void gabe::circuits::generator::CircuitGenerator::and(const Wire& input1, const Wire& input2, Wire& output) {
+void gabe::circuits::generator::CircuitGenerator::AND(const Wire& input1, const Wire& input2, Wire& output) {
     _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["and"] );
 
     output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
@@ -388,7 +389,7 @@ void gabe::circuits::generator::CircuitGenerator::and(const Wire& input1, const 
     _counter_and_gates++;
 }
 
-void gabe::circuits::generator::CircuitGenerator::inv(const Wire& input, Wire& output) {
+void gabe::circuits::generator::CircuitGenerator::INV(const Wire& input, Wire& output) {
     _write_1_1_gate( input.label, _counter_wires, _gates_map["inv"] );
 
     output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
@@ -398,7 +399,7 @@ void gabe::circuits::generator::CircuitGenerator::inv(const Wire& input, Wire& o
     _counter_inv_gates++;
 }
 
-void gabe::circuits::generator::CircuitGenerator::or(const Wire& input1, const Wire& input2, Wire& output) {
+void gabe::circuits::generator::CircuitGenerator::OR(const Wire& input1, const Wire& input2, Wire& output) {
     _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["or"] );
 
     output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
@@ -408,82 +409,82 @@ void gabe::circuits::generator::CircuitGenerator::or(const Wire& input1, const W
     _counter_or_gates++;
 }
 
-void gabe::circuits::generator::CircuitGenerator::xor(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
+void gabe::circuits::generator::CircuitGenerator::XOR(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
 
     // XOR all the wires
     for (int i = 0; i < input1.size(); i++)
-        xor(input1[i], input2[i], output[i]);
+        XOR(input1[i], input2[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::and(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
+void gabe::circuits::generator::CircuitGenerator::AND(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
 
     // AND all the wires
     for (int i = 0; i < input1.size(); i++)
-        and(input1[i], input2[i], output[i]);
+        AND(input1[i], input2[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::inv(const SignedVar& input, SignedVar& output) {
+void gabe::circuits::generator::CircuitGenerator::INV(const SignedVar& input, SignedVar& output) {
     // Safety checks
     _assert_equal_size(input, output);
 
     // INV all the wires
     for (int i = 0; i < input.size(); i++)
-        inv(input[i], output[i]);
+        INV(input[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::or(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
+void gabe::circuits::generator::CircuitGenerator::OR(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
 
     // OR all the wires
     for (int i = 0; i < input1.size(); i++)
-        or(input1[i], input2[i], output[i]);
+        OR(input1[i], input2[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::xor(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::circuits::generator::CircuitGenerator::XOR(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
 
     // XOR all the wires
     for (int i = 0; i < input1.size(); i++)
-        xor(input1[i], input2[i], output[i]);
+        XOR(input1[i], input2[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::and(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::circuits::generator::CircuitGenerator::AND(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
 
     // AND all the wires
     for (int i = 0; i < input1.size(); i++)
-        and(input1[i], input2[i], output[i]);
+        AND(input1[i], input2[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::inv(const UnsignedVar& input, UnsignedVar& output) {
+void gabe::circuits::generator::CircuitGenerator::INV(const UnsignedVar& input, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input, output);
 
     // INV all the wires
     for (int i = 0; i < input.size(); i++)
-        inv(input[i], output[i]);
+        INV(input[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::or(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::circuits::generator::CircuitGenerator::OR(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
 
     // OR all the wires
     for (int i = 0; i < input1.size(); i++)
-        or(input1[i], input2[i], output[i]);
+        OR(input1[i], input2[i], output[i]);
 }
 
 //void gabe::circuits::generator::CircuitGenerator::multiplication(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {}
@@ -504,20 +505,20 @@ void gabe::circuits::generator::CircuitGenerator::addition(const UnsignedVar& in
 
     // Middle operations
     for (int i = 0; i < output.size(); i++) {
-        xor(input1[i], input2[i], xor_a_b[i]);
+        XOR(input1[i], input2[i], xor_a_b[i]);
 
         // Do not perform these operations if it is the last cycle
         if (i != output.size() - 1) {
-            and(input1[i], input2[i], and_a_b[i]);
-            and(xor_a_b[i], carry[i], and_d_c[i]);
-            or(and_a_b[i], and_d_c[i], carry[i + 1]);
+            AND(input1[i], input2[i], and_a_b[i]);
+            AND(xor_a_b[i], carry[i], and_d_c[i]);
+            OR(and_a_b[i], and_d_c[i], carry[i + 1]);
         }
     }
 
     // Final operations (only done like this to put the output wires last in the writting phase)
     // TODO - Think of a solution to make this possible without having this separated for cycle
     for (int i = 0; i < output.size(); i++)
-        xor(xor_a_b[i], carry[i], output[i]);
+        XOR(xor_a_b[i], carry[i], output[i]);
 }
 
 void gabe::circuits::generator::CircuitGenerator::subtraction(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
@@ -538,22 +539,22 @@ void gabe::circuits::generator::CircuitGenerator::subtraction(const UnsignedVar&
 
     // Middle operations
     for (int i = 0; i < output.size(); i++) {
-        xor(input1[i], input2[i], xor_a_b[i]);
+        XOR(input1[i], input2[i], xor_a_b[i]);
 
         // Do not perform these operations if it is the last cycle
         if (i != output.size() - 1) {
-            inv(xor_a_b[i], inv_d[i]);
-            inv(input1[i], inv_a[i]);
-            and(inv_d[i], carry[i], and_d_c[i]);
-            and(inv_a[i], input2[i], and_a_c[i]);
-            or(and_d_c[i], and_a_c[i], carry[i]);
+            INV(xor_a_b[i], inv_d[i]);
+            INV(input1[i], inv_a[i]);
+            AND(inv_d[i], carry[i], and_d_c[i]);
+            AND(inv_a[i], input2[i], and_a_c[i]);
+            OR(and_d_c[i], and_a_c[i], carry[i]);
         }
     }
 
     // Final operations (only done like this to put the output wires last in the writting phase)
     // TODO - Think of a solution to make this possible without having this separated for cycle
     for (int i = 0; i < output.size(); i++)
-        xor(xor_a_b[i], carry[i], output[i]);
+        XOR(xor_a_b[i], carry[i], output[i]);
 }
 
 void gabe::circuits::generator::CircuitGenerator::multiplication(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
@@ -569,7 +570,7 @@ void gabe::circuits::generator::CircuitGenerator::multiplication(const UnsignedV
 
         // Variable is 0 or equal to input2 (shifted j, where j is the iteration step)
         for (int j = 0; j < input1.size(); j++)
-            and(input1[j], input2[i], variables.at(i)[i+j]);
+            AND(input1[j], input2[i], variables.at(i)[i+j]);
     }
 
     // Final operations
@@ -657,20 +658,20 @@ void gabe::circuits::generator::CircuitGenerator::multiplexer(const Wire& contro
     _assert_equal_size(input1, output);
 
     Wire not_control;
-    inv(control, not_control);
+    INV(control, not_control);
 
     SignedVar and_in1(input1.size());
     SignedVar and_in2(input2.size());
 
     for (int i = 0; i < input1.size(); i++) {
-        and(not_control, input1[i], and_in1[i]);
-        and(control, input2[i], and_in2[i]);
+        AND(not_control, input1[i], and_in1[i]);
+        AND(control, input2[i], and_in2[i]);
     }
 
     // Final operation (only done like this to put the output wires last in the writting phase)
     // TODO - Think of a solution to make this possible without having this separated for cycle
     for (int i = 0; i < input1.size(); i++)
-        or(and_in1[i], and_in2[i], output[i]);
+        OR(and_in1[i], and_in2[i], output[i]);
 }
 
 void gabe::circuits::generator::CircuitGenerator::multiplexer(const SignedVar& control, const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
@@ -685,17 +686,17 @@ void gabe::circuits::generator::CircuitGenerator::equal(const SignedVar& input1,
     _assert_equal_size(input1, input2);
 
     SignedVar inputs_xor(input1.size());
-    xor(input1, input2, inputs_xor);
+    XOR(input1, input2, inputs_xor);
 
     // Already adds the first wire from the xor to the output
     output = inputs_xor[0];
 
     // ORs every single wire (if more than 1)
     for (int i = 1; i < inputs_xor.size(); i++)
-        or(inputs_xor[i], output, output);
+        OR(inputs_xor[i], output, output);
 
     // Inverts the output result (Until here the output is 1 every time wires i-th from the inputs differ)
-    inv(output, output);
+    INV(output, output);
 }
 
 void gabe::circuits::generator::CircuitGenerator::equal(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
@@ -711,20 +712,20 @@ void gabe::circuits::generator::CircuitGenerator::multiplexer(const Wire& contro
     _assert_equal_size(input1, output);
 
     Wire not_control;
-    inv(control, not_control);
+    INV(control, not_control);
 
     UnsignedVar and_in1(input1.size());
     UnsignedVar and_in2(input2.size());
 
     for (int i = 0; i < input1.size(); i++) {
-        and(not_control, input1[i], and_in1[i]);
-        and(control, input2[i], and_in2[i]);
+        AND(not_control, input1[i], and_in1[i]);
+        AND(control, input2[i], and_in2[i]);
     }
 
     // Final operation (only done like this to put the output wires last in the writting phase)
     // TODO - Think of a solution to make this possible without having this separated for cycle
     for (int i = 0; i < input1.size(); i++)
-        or(and_in1[i], and_in2[i], output[i]);
+        OR(and_in1[i], and_in2[i], output[i]);
 }
 
 void gabe::circuits::generator::CircuitGenerator::multiplexer(const UnsignedVar& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
@@ -739,17 +740,17 @@ void gabe::circuits::generator::CircuitGenerator::equal(const UnsignedVar& input
     _assert_equal_size(input1, input2);
 
     UnsignedVar inputs_xor(input1.size());
-    xor(input1, input2, inputs_xor);
+    XOR(input1, input2, inputs_xor);
 
     // Already adds the first wire from the xor to the output
     output = inputs_xor[0];
 
     // ORs every single wire (if more than 1)
     for (int i = 1; i < inputs_xor.size(); i++)
-        or(inputs_xor[i], output, output);
+        OR(inputs_xor[i], output, output);
 
     // Inverts the output result (Until here the output is 1 every time wires i-th from the inputs differ)
-    inv(output, output);
+    INV(output, output);
 }
 
 void gabe::circuits::generator::CircuitGenerator::equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
@@ -766,13 +767,13 @@ void gabe::circuits::generator::CircuitGenerator::greater(const UnsignedVar& inp
     _assert_equal_size(input1, input2);
 
     UnsignedVar not_input2(input2.size());
-    inv(input2, not_input2);
+    INV(input2, not_input2);
 
     UnsignedVar inputs_xnor(input1.size());
     // This is done like this instead of a simple xor and inv to the whole variables because the least significant wire from the inputs is not relevant for the xnor
     for (int i = 1; i < input1.size(); i++) {
-        xor(input1[i], input2[i], inputs_xnor[i]);
-        inv(inputs_xnor[i], inputs_xnor[i]);
+        XOR(input1[i], input2[i], inputs_xnor[i]);
+        INV(inputs_xnor[i], inputs_xnor[i]);
     }
 
     // Performs the operations between the ORs (see schematic)
@@ -780,9 +781,9 @@ void gabe::circuits::generator::CircuitGenerator::greater(const UnsignedVar& inp
     for (int i = 0; i < middle_operations.size(); i++) {
         for (int j = i; j < middle_operations.size(); j++) {
             if (i == j)
-                and(input1[j], not_input2[i], middle_operations[i]);
+                AND(input1[j], not_input2[i], middle_operations[i]);
             else
-                and(middle_operations[i], inputs_xnor[j], middle_operations[i]);
+                AND(middle_operations[i], inputs_xnor[j], middle_operations[i]);
         }
     }
 
@@ -791,7 +792,7 @@ void gabe::circuits::generator::CircuitGenerator::greater(const UnsignedVar& inp
 
     // Perfoms the final operations - ORs every single wire (if more than 1)
     for (int i = 1; i < middle_operations.size(); i++)
-        or(middle_operations[i], output, output);
+        OR(middle_operations[i], output, output);
 }
 
 void gabe::circuits::generator::CircuitGenerator::greater(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
@@ -808,13 +809,13 @@ void gabe::circuits::generator::CircuitGenerator::smaller(const UnsignedVar& inp
     _assert_equal_size(input1, input2);
 
     UnsignedVar not_input1(input1.size());
-    inv(input1, not_input1);
+    INV(input1, not_input1);
 
     UnsignedVar inputs_xnor(input1.size());
     // This is done like this instead of a simple xor and inv to the whole variables because the least significant wire from the inputs is not relevant for the xnor
     for (int i = 1; i < input1.size(); i++) {
-        xor(input1[i], input2[i], inputs_xnor[i]);
-        inv(inputs_xnor[i], inputs_xnor[i]);
+        XOR(input1[i], input2[i], inputs_xnor[i]);
+        INV(inputs_xnor[i], inputs_xnor[i]);
     }
 
     // Performs the operations between the ORs (see schematic)
@@ -822,9 +823,9 @@ void gabe::circuits::generator::CircuitGenerator::smaller(const UnsignedVar& inp
     for (int i = 0; i < middle_operations.size(); i++) {
         for (int j = i; j < middle_operations.size(); j++) {
             if (i == j)
-                and(not_input1[j], input2[i], middle_operations[i]);
+                AND(not_input1[j], input2[i], middle_operations[i]);
             else
-                and(middle_operations[i], inputs_xnor[j], middle_operations[i]);
+                AND(middle_operations[i], inputs_xnor[j], middle_operations[i]);
         }
     }
 
@@ -833,7 +834,7 @@ void gabe::circuits::generator::CircuitGenerator::smaller(const UnsignedVar& inp
 
     // Perfoms the final operations - ORs every single wire (if more than 1)
     for (int i = 1; i < middle_operations.size(); i++)
-        or(middle_operations[i], output, output);
+        OR(middle_operations[i], output, output);
 }
 
 void gabe::circuits::generator::CircuitGenerator::smaller(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
@@ -848,7 +849,7 @@ void gabe::circuits::generator::CircuitGenerator::greater_or_equal(const Unsigne
     _assert_equal_size(input1, input2);
 
     smaller(input1, input2, output);
-    inv(output, output);
+    INV(output, output);
 }
 
 void gabe::circuits::generator::CircuitGenerator::greater_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
@@ -863,7 +864,7 @@ void gabe::circuits::generator::CircuitGenerator::smaller_or_equal(const Unsigne
     _assert_equal_size(input1, input2);
 
     greater(input1, input2, output);
-    inv(output, output);
+    INV(output, output);
 }
 
 void gabe::circuits::generator::CircuitGenerator::smaller_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
@@ -880,14 +881,14 @@ void gabe::circuits::generator::CircuitGenerator::comparator(const UnsignedVar& 
     // Performs the initial operations
     UnsignedVar not_input1(input1.size());
     UnsignedVar not_input2(input2.size());
-    inv(input1, not_input1);
-    inv(input2, not_input2);
+    INV(input1, not_input1);
+    INV(input2, not_input2);
 
     UnsignedVar inputs_xnor(input1.size());
     // This is done like this instead of a simple xor and inv to the whole variables because the least significant wire from the inputs is not relevant for the xnor
     for (int i = 1; i < input1.size(); i++) {
-        xor(input1[i], input2[i], inputs_xnor[i]);
-        inv(inputs_xnor[i], inputs_xnor[i]);
+        XOR(input1[i], input2[i], inputs_xnor[i]);
+        INV(inputs_xnor[i], inputs_xnor[i]);
     }
 
     // Performs the operations between the ORs for both greater and smaller cases (see schematics)
@@ -896,12 +897,12 @@ void gabe::circuits::generator::CircuitGenerator::comparator(const UnsignedVar& 
     for (int i = 0; i < middle_operations_greater.size(); i++) {
         for (int j = i; j < middle_operations_greater.size(); j++) {
             if (i == j) {
-                and(input1[j], not_input2[i], middle_operations_greater[i]);
-                and(not_input1[j], input2[i], middle_operations_smaller[i]);
+                AND(input1[j], not_input2[i], middle_operations_greater[i]);
+                AND(not_input1[j], input2[i], middle_operations_smaller[i]);
             }
             else {
-                and(middle_operations_greater[i], inputs_xnor[j], middle_operations_greater[i]);
-                and(middle_operations_smaller[i], inputs_xnor[j], middle_operations_smaller[i]);
+                AND(middle_operations_greater[i], inputs_xnor[j], middle_operations_greater[i]);
+                AND(middle_operations_smaller[i], inputs_xnor[j], middle_operations_smaller[i]);
             }
         }
     }
@@ -912,12 +913,12 @@ void gabe::circuits::generator::CircuitGenerator::comparator(const UnsignedVar& 
 
     // Perfoms the final operations - ORs every single wire (if more than 1)
     for (int i = 1; i < middle_operations_greater.size(); i++) {
-        or(middle_operations_greater[i], out_greater, out_greater);
-        or(middle_operations_smaller[i], out_smaller, out_smaller);
+        OR(middle_operations_greater[i], out_greater, out_greater);
+        OR(middle_operations_smaller[i], out_smaller, out_smaller);
     }
 
-    or(out_greater, out_smaller, out_equal);
-    inv(out_equal, out_equal);
+    OR(out_greater, out_smaller, out_equal);
+    INV(out_equal, out_equal);
 
     // TODO - I can't make this function have the very last wires as out_greater, out_smaller, and out_equal, as it requires the OR operation of out_greater and out_smaller to get the out_equal.
 }

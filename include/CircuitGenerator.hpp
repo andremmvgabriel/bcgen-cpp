@@ -1,11 +1,11 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <fstream>
 #include <stdint.h>
 #include <filesystem>
-#include <direct.h>
 #include <unordered_map>
 
 #include <Wire.hpp>
@@ -35,13 +35,9 @@ namespace gabe {
                 uint64_t _counter_and_gates = 0x00;
                 uint64_t _counter_inv_gates = 0x00;
                 uint64_t _counter_or_gates = 0x00;
+                std::unordered_map<std::string, uint64_t> _gates_counters;
 
-                std::unordered_map<std::string, std::string> _gates_map = {
-                    {"xor", ""},
-                    {"and", ""},
-                    {"inv", ""},
-                    {"or", ""}
-                };
+                std::unordered_map<std::string, std::string> _gates_map;
 
                 // Zero and One wires
                 Wire _zero_wire; // Wire that is always zero in the circuit
@@ -141,22 +137,22 @@ namespace gabe {
                 void twos_complement(const UnsignedVar& variable, UnsignedVar& output);
 
                 // Basic wire operations
-                void xor(const Wire& input1, const Wire& input2, Wire& output);
-                void and(const Wire& input1, const Wire& input2, Wire& output);
-                void inv(const Wire& input, Wire& output);
-                void or(const Wire& input1, const Wire& input2, Wire& output);
+                void XOR(const Wire& input1, const Wire& input2, Wire& output);
+                void AND(const Wire& input1, const Wire& input2, Wire& output);
+                void INV(const Wire& input, Wire& output);
+                void OR(const Wire& input1, const Wire& input2, Wire& output);
 
                 // Basic signed operations
-                void xor(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
-                void and(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
-                void inv(const SignedVar& input, SignedVar& output);
-                void or(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                void XOR(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                void AND(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
+                void INV(const SignedVar& input, SignedVar& output);
+                void OR(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
 
                 // Basic unsigned operations
-                void xor(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
-                void and(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
-                void inv(const UnsignedVar& input, UnsignedVar& output);
-                void or(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
+                void XOR(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
+                void AND(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
+                void INV(const UnsignedVar& input, UnsignedVar& output);
+                void OR(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output);
 
                 // Arithmetic signed operations
                 //void addition(const SignedVar& input1, const SignedVar& input2, SignedVar& output);
