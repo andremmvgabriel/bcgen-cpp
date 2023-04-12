@@ -43,7 +43,8 @@ namespace gabe {
             // Logging
             std::shared_ptr<spdlog::logger> _logger;
 
-            uint64_t _buffer_pos = 0x00;
+            uint64_t _buffer_size = 0x00;
+            uint64_t _buffer_max_size = 0xFF;
             std::vector<std::string> _buffer;
 
         private:
@@ -57,6 +58,7 @@ namespace gabe {
             void _assert_equal_size(const SignedVar& var, const uint64_t size);
             void _assert_equal_size(const UnsignedVar& var, const uint64_t size);
 
+            void _flush_buffer(std::ofstream& file);
             void _write_gate(const std::string& line, const std::string& gate);
             void _write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate);
             void _write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate);
@@ -134,10 +136,10 @@ namespace gabe {
             void twos_complement(const UnsignedVar& variable, UnsignedVar& output);
 
             // Basic wire operations
-            void XOR(const Wire& input1, const Wire& input2, Wire& output);
-            void AND(const Wire& input1, const Wire& input2, Wire& output);
-            void INV(const Wire& input, Wire& output);
-            void OR(const Wire& input1, const Wire& input2, Wire& output);
+            void XOR(const Wire input1, const Wire input2, Wire& output);
+            void AND(const Wire input1, const Wire input2, Wire& output);
+            void INV(const Wire input, Wire& output);
+            void OR(const Wire input1, const Wire input2, Wire& output);
 
             // Basic signed operations
             void XOR(const SignedVar& input1, const SignedVar& input2, SignedVar& output);

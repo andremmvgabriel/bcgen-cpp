@@ -43,47 +43,36 @@ void gabe::bcgen::CircuitGenerator::_create_save_directory() {
     );
 }
 
-// TODO: REMOVE
-// void gabe::bcgen::CircuitGenerator::_open_files() {
-//     // Open circuit file
-//     _circuit = std::ofstream(
-//         _circuits_directory + _circuit_name + ".txt",
-//         std::ios::out | std::ios::trunc
-//     );
-
-//     // Open temporary circuit file (will be deleted in the end)
-//     _temp_circuit = std::fstream(
-//         _circuits_directory + _temp_circuit_name + ".txt",
-//         std::ios::in | std::ios::out | std::ios::trunc
-//     );
-// }
-
-// TODO: REMOVE
-// void gabe::bcgen::CircuitGenerator::_close_files() {
-//     // Closes the files
-//     if (_circuit.is_open()) { _circuit.close(); }
-//     if (_temp_circuit.is_open()) { _temp_circuit.close(); }
-
-//     // Removes the temporary file from the system
-//     remove((_circuits_directory + _temp_circuit_name + ".txt").c_str() );
-// }
-
 void gabe::bcgen::CircuitGenerator::_write_header(std::ofstream& file) {}
 
 void gabe::bcgen::CircuitGenerator::_write_circuit(std::ofstream& file) {
-    // // Places the reading pointer in the beginning of the temporary file
-    // _temp_circuit.seekg(0);
+    // Open the temporary circuit file
+    std::ifstream temp_circuit(
+        _circuits_directory / (_circuit_name + "_temp.txt"),
+        std::ios::in
+    );
 
-    // // Reads all the lines and writes them into the circuit file
-    // std::string line;
-    // while (std::getline(_temp_circuit, line)) {
-    //     line += "\n";
-    //     _circuit.write(line.c_str(), line.size());
-    // }
+    // Can only move temp contents if file was created
+    if (!temp_circuit.fail()) {
+        // Contents transfer
+        std::string line;
+        while (std::getline(temp_circuit, line)) {
+            line += "\n";
+            file.write(line.c_str(), line.size());
+        }
 
-    for (auto & line : _buffer) {
-        file.write(line.c_str(), line.size());
+        // Logging
+        _logger->info("Successfully transfered contents from temporary circuit file.");
+    } else {
+        // Logging
+        _logger->info("Cannot transfer contents from temporary circuit file. It was not created.");
     }
+
+    // Writes unflushed data inside the buffer 
+    _flush_buffer(file);
+
+    // Logging
+    _logger->info("Circuit writing phase completed.");
 }
 
 void gabe::bcgen::CircuitGenerator::_assert_add_input(uint64_t size) {
@@ -126,9 +115,30 @@ void gabe::bcgen::CircuitGenerator::_assert_equal_size(const UnsignedVar& var, c
     }
 }
 
+void gabe::bcgen::CircuitGenerator::_flush_buffer(std::ofstream& file) {
+    for (auto & line : _buffer) {
+        file.write(line.c_str(), line.size());
+    }
+}
+
 void gabe::bcgen::CircuitGenerator::_write_gate(const std::string& line, const std::string& gate) {
+    // Adds the gate line into the buffer
     _buffer.push_back(line);
-    // TODO: CHECK IF BUFFER CAN FLUSH
+    _buffer_size += line.size();
+
+    // Buffer flush check
+    if (_buffer_size >= _buffer_max_size) {
+        // Open the temporary circuit file
+        std::ofstream temp_circuit(
+            _circuits_directory / (_circuit_name + "_temp.txt"),
+            std::ios::out
+        );
+
+        // Flushes the buffer into the temporary file
+        _flush_buffer(temp_circuit);
+    }
+
+    // Increments the counters
     _counter_gates++;
     _gates_counters[gate]++;
 }
@@ -430,40 +440,20 @@ void gabe::bcgen::CircuitGenerator::twos_complement(const UnsignedVar& variable,
     twos_complement(output);
 }
 
-void gabe::bcgen::CircuitGenerator::XOR(const Wire& input1, const Wire& input2, Wire& output) {
-    _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["xor"] );
-
-    output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
-
-    // Counters increment
-    _counter_wires++;
+void gabe::bcgen::CircuitGenerator::XOR(const Wire input1, const Wire input2, Wire& output) {
+    _write_2_1_gate( input1.label, input2.label, output.label = _counter_wires++, _gates_map["xor"] );
 }
 
-void gabe::bcgen::CircuitGenerator::AND(const Wire& input1, const Wire& input2, Wire& output) {
-    _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["and"] );
-
-    output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
-
-    // Counters increment
-    _counter_wires++;
+void gabe::bcgen::CircuitGenerator::AND(const Wire input1, const Wire input2, Wire& output) {
+    _write_2_1_gate( input1.label, input2.label, output.label = _counter_wires++, _gates_map["and"] );
 }
 
-void gabe::bcgen::CircuitGenerator::INV(const Wire& input, Wire& output) {
-    _write_1_1_gate( input.label, _counter_wires, _gates_map["inv"] );
-
-    output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
-
-    // Counters increment
-    _counter_wires++;
+void gabe::bcgen::CircuitGenerator::INV(const Wire input, Wire& output) {
+    _write_1_1_gate( input.label, output.label = _counter_wires++, _gates_map["inv"] );
 }
 
-void gabe::bcgen::CircuitGenerator::OR(const Wire& input1, const Wire& input2, Wire& output) {
-    _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["or"] );
-
-    output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
-
-    // Counters increment
-    _counter_wires++;
+void gabe::bcgen::CircuitGenerator::OR(const Wire input1, const Wire input2, Wire& output) {
+    _write_2_1_gate( input1.label, input2.label, output.label = _counter_wires++, _gates_map["or"] );
 }
 
 void gabe::bcgen::CircuitGenerator::XOR(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
