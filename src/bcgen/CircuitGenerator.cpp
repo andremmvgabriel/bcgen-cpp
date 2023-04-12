@@ -1,189 +1,203 @@
-#include <CircuitGenerator.hpp>
+#include <bcgen/CircuitGenerator.hpp>
 #include <filesystem>
 
-gabe::circuits::generator::CircuitGenerator::CircuitGenerator() {}
+gabe::bcgen::CircuitGenerator::CircuitGenerator() {}
 
-gabe::circuits::generator::CircuitGenerator::CircuitGenerator(const std::string &circuit_name, const std::vector<uint64_t>& wires_per_input_party, const std::vector<uint64_t>& wires_per_output_party, const std::string &circuits_directory) : _circuit_name(circuit_name), _temp_circuit_name(_circuit_name+"_temp"), _wires_per_input_party(wires_per_input_party), _wires_per_output_party(wires_per_output_party), _circuits_directory(circuits_directory) {
+gabe::bcgen::CircuitGenerator::CircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory) : _circuit_name(circuit_name), _circuits_directory(circuits_directory) {
+    _setup_logger();
     _create_save_directory();
-    _open_files();
-
-    // Registers the expected amount of input and output wires
-    for (auto & amount : wires_per_input_party) _expected_input_wires += amount;
-    for (auto & amount : wires_per_output_party) _expected_output_wires += amount;
 }
 
-gabe::circuits::generator::CircuitGenerator::~CircuitGenerator() {
-    _close_files();
+gabe::bcgen::CircuitGenerator::~CircuitGenerator() {}
+
+void gabe::bcgen::CircuitGenerator::_setup_logger() {
+    _logger = spdlog::basic_logger_mt("bcgen_" + _circuit_name, "logs/" + _circuit_name + ".txt", true);
+    _logger->set_level(spdlog::level::trace);
+    _logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%=7l] %v");
 }
 
-void gabe::circuits::generator::CircuitGenerator::_create_save_directory() {
-    // If the user gave a directory, it is assumed that it exists and does not need to be created
-    if (_circuits_directory.size() != 0) return;
-
-    // Get the current directory and add "circuits" to it
-    _circuits_directory = std::filesystem::current_path().string() + "/circuits/";
+void gabe::bcgen::CircuitGenerator::_create_save_directory() {
+    // There is nothing to be created if the specified directory is empty
+    if (_circuits_directory.empty()) return;
 
     // Create circuits directory in current directory
     std::filesystem::create_directory(_circuits_directory);
+
+    // Logging
+    // TODO
 }
 
-void gabe::circuits::generator::CircuitGenerator::_open_files() {
+// TODO: REMOVE
+// void gabe::bcgen::CircuitGenerator::_open_files() {
+//     // Open circuit file
+//     _circuit = std::ofstream(
+//         _circuits_directory + _circuit_name + ".txt",
+//         std::ios::out | std::ios::trunc
+//     );
+
+//     // Open temporary circuit file (will be deleted in the end)
+//     _temp_circuit = std::fstream(
+//         _circuits_directory + _temp_circuit_name + ".txt",
+//         std::ios::in | std::ios::out | std::ios::trunc
+//     );
+// }
+
+// TODO: REMOVE
+// void gabe::bcgen::CircuitGenerator::_close_files() {
+//     // Closes the files
+//     if (_circuit.is_open()) { _circuit.close(); }
+//     if (_temp_circuit.is_open()) { _temp_circuit.close(); }
+
+//     // Removes the temporary file from the system
+//     remove((_circuits_directory + _temp_circuit_name + ".txt").c_str() );
+// }
+
+void gabe::bcgen::CircuitGenerator::_write_header(std::ofstream& file) {}
+
+void gabe::bcgen::CircuitGenerator::_write_circuit(std::ofstream& file) {
+    // // Places the reading pointer in the beginning of the temporary file
+    // _temp_circuit.seekg(0);
+
+    // // Reads all the lines and writes them into the circuit file
+    // std::string line;
+    // while (std::getline(_temp_circuit, line)) {
+    //     line += "\n";
+    //     _circuit.write(line.c_str(), line.size());
+    // }
+
+    for (auto & line : _buffer) {
+        file.write(line.c_str(), line.size());
+    }
+}
+
+void gabe::bcgen::CircuitGenerator::_assert_equal_size(const SignedVar& var1, const SignedVar& var2) {
+    if (var1.size() != var2.size()) {
+        const std::string error_msg = "Variables should have the same size to perform operation.";
+        _logger->error(error_msg);
+        throw std::runtime_error(error_msg);
+    }
+}
+
+void gabe::bcgen::CircuitGenerator::_assert_equal_size(const UnsignedVar& var1, const UnsignedVar& var2) {
+    if (var1.size() != var2.size()) {
+        const std::string error_msg = "Variables should have the same size to perform operation.";
+        _logger->error(error_msg);
+        throw std::runtime_error(error_msg);
+    }
+}
+
+void gabe::bcgen::CircuitGenerator::_assert_equal_size(const SignedVar& var, const uint64_t size) {
+    if (var.size() != size) {
+        const std::string error_msg = fmt::format("Variable should have a size of {}.", size);
+        _logger->error(error_msg);
+        throw std::runtime_error(error_msg);
+    }
+}
+
+void gabe::bcgen::CircuitGenerator::_assert_equal_size(const UnsignedVar& var, const uint64_t size) {
+    if (var.size() != size){
+        const std::string error_msg = fmt::format("Variable should have a size of {}.", size);
+        _logger->error(error_msg);
+        throw std::runtime_error(error_msg);
+    }
+}
+
+void gabe::bcgen::CircuitGenerator::_write_gate(const std::string& line, const std::string& gate) {
+    _buffer.push_back(line);
+    // TODO: CHECK IF BUFFER CAN FLUSH
+    _counter_gates++;
+    _gates_counters[gate]++;
+}
+
+void gabe::bcgen::CircuitGenerator::_write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate) {
+    // Line construction
+    const std::string line = fmt::format("1 1 {} {} {}\n", input, output, gate);
+    _write_gate(line, gate);
+}
+
+void gabe::bcgen::CircuitGenerator::_write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate) {
+    // Line construction
+    const std::string line = fmt::format("2 1 {} {} {} {}\n", input1 < input2 ? input1 : input2, input1 < input2 ? input2 : input1, output, gate);
+    _write_gate(line, gate);
+}
+
+void gabe::bcgen::CircuitGenerator::add_input_party(uint64_t size) {
+    _input_parties.push_back(size);
+    _expected_input_wires += size;
+
+    // Logging
+    _logger->info("Added input party {} with {} wires.", _input_parties.size(), size);
+    _logger->debug("Party {} assigned wires: [{}:{}]", _input_parties.size(), _expected_input_wires - size, _expected_input_wires - 1);
+}
+
+void gabe::bcgen::CircuitGenerator::add_output_party(uint64_t size) {
+    _output_parties.push_back(size);
+
+    // Logging
+    _logger->info("Added output party {} with {} wires.", _output_parties.size(), size);
+}
+
+void gabe::bcgen::CircuitGenerator::add_input(Wire& wire) {
+    if (_counter_wires >= _expected_input_wires) {
+        const std::string error_msg = "There aren't enough input wires available.";
+        _logger->error(error_msg);
+        throw std::runtime_error(error_msg);
+    }
+    
+    // Assigns a label to the wire
+    wire.label = _counter_wires++;
+}
+
+void gabe::bcgen::CircuitGenerator::add_input(SignedVar& variable) {
+    for (int i = 0; i < variable.size(); i++)
+        add_input( variable[i] );
+}
+
+void gabe::bcgen::CircuitGenerator::add_input(UnsignedVar& variable) {
+    for (int i = 0; i < variable.size(); i++)
+        add_input( variable[i] );
+}
+
+void gabe::bcgen::CircuitGenerator::add_output(Wire& wire) {}
+
+void gabe::bcgen::CircuitGenerator::add_output(SignedVar& variable) {
+    for (int i = 0; i < variable.size(); i++)
+        add_output( variable[i] );
+}
+
+void gabe::bcgen::CircuitGenerator::add_output(UnsignedVar& variable) {
+    for (int i = 0; i < variable.size(); i++)
+        add_output( variable[i] );
+}
+
+void gabe::bcgen::CircuitGenerator::start() {
+    // Safety check
+    if (_counter_wires < _expected_input_wires) {
+        const std::string error_msg = "Dead wires in the circuit. There are input wires that are not assigned to a variable.";
+        _logger->error(error_msg);
+        throw std::runtime_error(error_msg);
+    }
+
+    // Creates the zero and one wires
+    XOR( Wire(), Wire(), _zero_wire );
+    INV( _zero_wire, _zero_wire ); 
+
+    // Logging
+    _logger->info("Starting the circuit file creation...");
+}
+
+void gabe::bcgen::CircuitGenerator::stop() {
     // Open circuit file
     _circuit = std::ofstream(
         _circuits_directory + _circuit_name + ".txt",
         std::ios::out | std::ios::trunc
     );
 
-    // Open temporary circuit file (will be deleted in the end)
-    _temp_circuit = std::fstream(
-        _circuits_directory + _temp_circuit_name + ".txt",
-        std::ios::in | std::ios::out | std::ios::trunc
-    );
+    _write_header(_circuit);
+    _write_circuit(_circuit);
 }
 
-void gabe::circuits::generator::CircuitGenerator::_close_files() {
-    // Closes the files
-    if (_circuit.is_open()) { _circuit.close(); }
-    if (_temp_circuit.is_open()) { _temp_circuit.close(); }
-
-    // Removes the temporary file from the system
-    remove((_circuits_directory + _temp_circuit_name + ".txt").c_str() );
-}
-
-void gabe::circuits::generator::CircuitGenerator::_write_header() {}
-
-void gabe::circuits::generator::CircuitGenerator::_write_header_info() {}
-
-void gabe::circuits::generator::CircuitGenerator::_write_header_inputs() {}
-
-void gabe::circuits::generator::CircuitGenerator::_write_header_outputs() {}
-
-void gabe::circuits::generator::CircuitGenerator::_write_circuit() {
-    // Places the reading pointer in the beginning of the temporary file
-    _temp_circuit.seekg(0);
-
-    // Reads all the lines and writes them into the circuit file
-    std::string line;
-    while (std::getline(_temp_circuit, line)) {
-        line += "\n";
-        _circuit.write(line.c_str(), line.size());
-    }
-}
-
-void gabe::circuits::generator::CircuitGenerator::_assert_valid() {
-    if (!valid)
-        throw std::runtime_error("The generator is yet not valid. Make sure you have inserted all the specified input wires and use the start() function before starting the writting of the algorithm.");
-}
-
-void gabe::circuits::generator::CircuitGenerator::_assert_valid_add_input() {
-    if (_counter_wires >= _expected_input_wires)
-        throw std::runtime_error("There aren't enough input wires available. Make sure the specified input wires for each party are correct.");
-}
-
-void gabe::circuits::generator::CircuitGenerator::_assert_valid_start() {
-    if (_counter_wires < _expected_input_wires)
-        throw std::runtime_error("There aren't enough input wires added to the circuit. Make sure the specified input wires for each party are correct or add more input wires.");
-}
-
-void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const SignedVar& var1, const SignedVar& var2) {
-    if (var1.size() != var2.size())
-        throw std::invalid_argument("The inserted variables do not share the same size.");
-}
-
-void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const UnsignedVar& var1, const UnsignedVar& var2) {
-    if (var1.size() != var2.size())
-        throw std::invalid_argument("The inserted variables do not share the same size.");
-}
-
-void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const SignedVar& var, const uint64_t size) {
-    if (var.size() != size)
-        throw std::invalid_argument("The inserted variables do not share the same size.");
-}
-
-void gabe::circuits::generator::CircuitGenerator::_assert_equal_size(const UnsignedVar& var, const uint64_t size) {
-    if (var.size() != size)
-        throw std::invalid_argument("The inserted variables do not share the same size.");
-}
-
-void gabe::circuits::generator::CircuitGenerator::_write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate) {
-    // Safety check
-    _assert_valid();
-
-    // Line construction
-    std::string line = "1 1 " + std::to_string(input) + " " + std::to_string(output) + " " + gate + "\n";
-
-    // Writting...
-    _temp_circuit.write( line.c_str(), line.size() );
-}
-
-void gabe::circuits::generator::CircuitGenerator::_write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate) {
-    // Safety check
-    _assert_valid();
-
-    // Input 1 should contain the smallest label input wire
-    std::string in1 = input1 < input2 ? std::to_string(input1) : std::to_string(input2);
-
-    // Input 2 should contain the biggest label input wire
-    std::string in2 = input1 > input2 ? std::to_string(input1) : std::to_string(input2);
-
-    // Line construction
-    std::string line = "2 1 " + in1 + " " + in2 + " " + std::to_string(output) + " " + gate + "\n";
-
-    // Writting...
-    _temp_circuit.write( line.c_str(), line.size() );
-}
-
-void gabe::circuits::generator::CircuitGenerator::add_input(Wire& wire) {
-    // Safety check
-    _assert_valid_add_input();
-    
-    // Assigns a label to the wire
-    wire.label = _counter_wires++;
-}
-
-void gabe::circuits::generator::CircuitGenerator::add_input(SignedVar& variable) {
-    for (int i = 0; i < variable.size(); i++)
-        add_input( variable[i] );
-}
-
-void gabe::circuits::generator::CircuitGenerator::add_input(UnsignedVar& variable) {
-    for (int i = 0; i < variable.size(); i++)
-        add_input( variable[i] );
-}
-
-void gabe::circuits::generator::CircuitGenerator::add_output(Wire& wire) {}
-
-void gabe::circuits::generator::CircuitGenerator::add_output(SignedVar& variable) {
-    for (int i = 0; i < variable.size(); i++)
-        add_output( variable[i] );
-}
-
-void gabe::circuits::generator::CircuitGenerator::add_output(UnsignedVar& variable) {
-    for (int i = 0; i < variable.size(); i++)
-        add_output( variable[i] );
-}
-
-void gabe::circuits::generator::CircuitGenerator::start() {
-    // Safety check
-    _assert_valid_start();
-
-    // Circuit is valid to be generated
-    valid = true;
-
-    // Creates the zero and one wires
-    XOR( Wire(), Wire(), _zero_wire );
-    INV( _zero_wire, _zero_wire ); 
-}
-
-void gabe::circuits::generator::CircuitGenerator::stop() {
-    _write_header();
-    _write_circuit();
-
-    // Circuit is no longer valid to be increased
-    valid = false;
-}
-
-void gabe::circuits::generator::CircuitGenerator::assign_value(SignedVar& variable, int64_t value) {
+void gabe::bcgen::CircuitGenerator::assign_value(SignedVar& variable, int64_t value) {
     for (uint8_t i = 0; i < variable.size(); i++) {
         // Gets the current bit value
         uint8_t bit_value = (value >> i) & 0x01;
@@ -193,7 +207,7 @@ void gabe::circuits::generator::CircuitGenerator::assign_value(SignedVar& variab
     }
 }
 
-void gabe::circuits::generator::CircuitGenerator::assign_value(UnsignedVar& variable, uint64_t value) {
+void gabe::bcgen::CircuitGenerator::assign_value(UnsignedVar& variable, uint64_t value) {
     for (uint8_t i = 0; i < variable.size(); i++) {
         // Gets the current bit value
         uint8_t bit_value = (value >> i) & 0x01;
@@ -203,7 +217,7 @@ void gabe::circuits::generator::CircuitGenerator::assign_value(UnsignedVar& vari
     }
 }
 
-void gabe::circuits::generator::CircuitGenerator::shift_left(SignedVar &variable, uint64_t amount) {
+void gabe::bcgen::CircuitGenerator::shift_left(SignedVar &variable, uint64_t amount) {
     // Shifting
     for (uint64_t i = variable.size() - 1; i >= amount; i--)
         variable[i] = variable[i - amount];
@@ -213,7 +227,7 @@ void gabe::circuits::generator::CircuitGenerator::shift_left(SignedVar &variable
         variable[i] = _zero_wire;
 }
 
-void gabe::circuits::generator::CircuitGenerator::shift_left(UnsignedVar &variable, uint64_t amount) {
+void gabe::bcgen::CircuitGenerator::shift_left(UnsignedVar &variable, uint64_t amount) {
     // Shifting
     for (uint64_t i = variable.size() - 1; i >= amount; i--)
         variable[i] = variable[i - amount];
@@ -223,7 +237,7 @@ void gabe::circuits::generator::CircuitGenerator::shift_left(UnsignedVar &variab
         variable[i] = _zero_wire;
 }
 
-void gabe::circuits::generator::CircuitGenerator::shift_right(SignedVar &variable, uint64_t amount) {
+void gabe::bcgen::CircuitGenerator::shift_right(SignedVar &variable, uint64_t amount) {
     // Shifting
     for (int64_t i = 0; i < (int64_t)variable.size() - (int64_t)amount; i++)
         variable[i] = variable[i + amount];
@@ -233,7 +247,7 @@ void gabe::circuits::generator::CircuitGenerator::shift_right(SignedVar &variabl
         variable[i] = _zero_wire;
 }
 
-void gabe::circuits::generator::CircuitGenerator::shift_right(UnsignedVar &variable, uint64_t amount) {
+void gabe::bcgen::CircuitGenerator::shift_right(UnsignedVar &variable, uint64_t amount) {
     // Shifting
     for (int64_t i = 0; i < (int64_t)variable.size() - (int64_t)amount; i++)
         variable[i] = variable[i + amount];
@@ -243,27 +257,27 @@ void gabe::circuits::generator::CircuitGenerator::shift_right(UnsignedVar &varia
         variable[i] = _zero_wire;
 }
 
-void gabe::circuits::generator::CircuitGenerator::shift_left(const SignedVar& variable, uint64_t amount, SignedVar& output) {
+void gabe::bcgen::CircuitGenerator::shift_left(const SignedVar& variable, uint64_t amount, SignedVar& output) {
     output = variable;
     shift_left(output, amount);
 }
 
-void gabe::circuits::generator::CircuitGenerator::shift_left(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::shift_left(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output) {
     output = variable;
     shift_left(output, amount);
 }
 
-void gabe::circuits::generator::CircuitGenerator::shift_right(const SignedVar& variable, uint64_t amount, SignedVar& output) {
+void gabe::bcgen::CircuitGenerator::shift_right(const SignedVar& variable, uint64_t amount, SignedVar& output) {
     output = variable;
     shift_right(output, amount);
 }
 
-void gabe::circuits::generator::CircuitGenerator::shift_right(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::shift_right(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output) {
     output = variable;
     shift_right(output, amount);
 }
 
-void gabe::circuits::generator::CircuitGenerator::rotate_left(SignedVar &variable, uint64_t amount) {
+void gabe::bcgen::CircuitGenerator::rotate_left(SignedVar &variable, uint64_t amount) {
     SignedVar temp = variable;
 
     for (uint64_t i = 0; i < variable.size(); i++) {
@@ -272,7 +286,7 @@ void gabe::circuits::generator::CircuitGenerator::rotate_left(SignedVar &variabl
     }
 }
 
-void gabe::circuits::generator::CircuitGenerator::rotate_left(UnsignedVar &variable, uint64_t amount) {
+void gabe::bcgen::CircuitGenerator::rotate_left(UnsignedVar &variable, uint64_t amount) {
     UnsignedVar temp = variable;
 
     for (uint64_t i = 0; i < variable.size(); i++) {
@@ -281,7 +295,7 @@ void gabe::circuits::generator::CircuitGenerator::rotate_left(UnsignedVar &varia
     }
 }
 
-void gabe::circuits::generator::CircuitGenerator::rotate_right(SignedVar &variable, uint64_t amount) {
+void gabe::bcgen::CircuitGenerator::rotate_right(SignedVar &variable, uint64_t amount) {
     SignedVar temp = variable;
 
     for (uint64_t i = 0; i < variable.size(); i++) {
@@ -290,7 +304,7 @@ void gabe::circuits::generator::CircuitGenerator::rotate_right(SignedVar &variab
     }
 }
 
-void gabe::circuits::generator::CircuitGenerator::rotate_right(UnsignedVar &variable, uint64_t amount) {
+void gabe::bcgen::CircuitGenerator::rotate_right(UnsignedVar &variable, uint64_t amount) {
     UnsignedVar temp = variable;
 
     for (uint64_t i = 0; i < variable.size(); i++) {
@@ -299,55 +313,55 @@ void gabe::circuits::generator::CircuitGenerator::rotate_right(UnsignedVar &vari
     }
 }
 
-void gabe::circuits::generator::CircuitGenerator::rotate_left(const SignedVar& variable, uint64_t amount, SignedVar& output) {
+void gabe::bcgen::CircuitGenerator::rotate_left(const SignedVar& variable, uint64_t amount, SignedVar& output) {
     output = variable;
     rotate_left(output, amount);
 }
 
-void gabe::circuits::generator::CircuitGenerator::rotate_left(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::rotate_left(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output) {
     output = variable;
     rotate_left(output, amount);
 }
 
-void gabe::circuits::generator::CircuitGenerator::rotate_right(const SignedVar& variable, uint64_t amount, SignedVar& output) {
+void gabe::bcgen::CircuitGenerator::rotate_right(const SignedVar& variable, uint64_t amount, SignedVar& output) {
     output = variable;
     rotate_right(output, amount);
 }
 
-void gabe::circuits::generator::CircuitGenerator::rotate_right(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::rotate_right(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output) {
     output = variable;
     rotate_right(output, amount);
 }
 
-void gabe::circuits::generator::CircuitGenerator::flip(SignedVar& variable) {
+void gabe::bcgen::CircuitGenerator::flip(SignedVar& variable) {
     SignedVar temp = variable;
 
     for (uint64_t i = 0; i < variable.size(); i++)
         variable[i] = temp[variable.size() - 1 - i];
 }
 
-void gabe::circuits::generator::CircuitGenerator::flip(UnsignedVar& variable) {
+void gabe::bcgen::CircuitGenerator::flip(UnsignedVar& variable) {
     UnsignedVar temp = variable;
 
     for (uint64_t i = 0; i < variable.size(); i++)
         variable[i] = temp[variable.size() - 1 - i];
 }
 
-void gabe::circuits::generator::CircuitGenerator::flip(const SignedVar& variable, SignedVar& output) {
+void gabe::bcgen::CircuitGenerator::flip(const SignedVar& variable, SignedVar& output) {
     output = variable;
     flip(output);
 }
 
-void gabe::circuits::generator::CircuitGenerator::flip(const UnsignedVar& variable, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::flip(const UnsignedVar& variable, UnsignedVar& output) {
     output = variable;
     flip(output);
 }
 
-void gabe::circuits::generator::CircuitGenerator::twos_complement(SignedVar& variable) {
+void gabe::bcgen::CircuitGenerator::twos_complement(SignedVar& variable) {
     // TODO - Complete this function...
 }
 
-void gabe::circuits::generator::CircuitGenerator::twos_complement(UnsignedVar& variable) {
+void gabe::bcgen::CircuitGenerator::twos_complement(UnsignedVar& variable) {
     // Variable creations
     UnsignedVar one(variable.size());
 
@@ -359,17 +373,17 @@ void gabe::circuits::generator::CircuitGenerator::twos_complement(UnsignedVar& v
     addition(one, variable, variable);
 }
 
-void gabe::circuits::generator::CircuitGenerator::twos_complement(const SignedVar& variable, SignedVar& output) {
+void gabe::bcgen::CircuitGenerator::twos_complement(const SignedVar& variable, SignedVar& output) {
     output = variable;
     twos_complement(output);
 }
 
-void gabe::circuits::generator::CircuitGenerator::twos_complement(const UnsignedVar& variable, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::twos_complement(const UnsignedVar& variable, UnsignedVar& output) {
     output = variable;
     twos_complement(output);
 }
 
-void gabe::circuits::generator::CircuitGenerator::XOR(const Wire& input1, const Wire& input2, Wire& output) {
+void gabe::bcgen::CircuitGenerator::XOR(const Wire& input1, const Wire& input2, Wire& output) {
     _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["xor"] );
 
     output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
@@ -379,7 +393,7 @@ void gabe::circuits::generator::CircuitGenerator::XOR(const Wire& input1, const 
     _counter_xor_gates++;
 }
 
-void gabe::circuits::generator::CircuitGenerator::AND(const Wire& input1, const Wire& input2, Wire& output) {
+void gabe::bcgen::CircuitGenerator::AND(const Wire& input1, const Wire& input2, Wire& output) {
     _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["and"] );
 
     output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
@@ -389,7 +403,7 @@ void gabe::circuits::generator::CircuitGenerator::AND(const Wire& input1, const 
     _counter_and_gates++;
 }
 
-void gabe::circuits::generator::CircuitGenerator::INV(const Wire& input, Wire& output) {
+void gabe::bcgen::CircuitGenerator::INV(const Wire& input, Wire& output) {
     _write_1_1_gate( input.label, _counter_wires, _gates_map["inv"] );
 
     output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
@@ -399,7 +413,7 @@ void gabe::circuits::generator::CircuitGenerator::INV(const Wire& input, Wire& o
     _counter_inv_gates++;
 }
 
-void gabe::circuits::generator::CircuitGenerator::OR(const Wire& input1, const Wire& input2, Wire& output) {
+void gabe::bcgen::CircuitGenerator::OR(const Wire& input1, const Wire& input2, Wire& output) {
     _write_2_1_gate( input1.label, input2.label, _counter_wires, _gates_map["or"] );
 
     output.label = _counter_wires; // This is done here to prevent the label override if input and output are the same variable
@@ -409,7 +423,7 @@ void gabe::circuits::generator::CircuitGenerator::OR(const Wire& input1, const W
     _counter_or_gates++;
 }
 
-void gabe::circuits::generator::CircuitGenerator::XOR(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
+void gabe::bcgen::CircuitGenerator::XOR(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
@@ -419,7 +433,7 @@ void gabe::circuits::generator::CircuitGenerator::XOR(const SignedVar& input1, c
         XOR(input1[i], input2[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::AND(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
+void gabe::bcgen::CircuitGenerator::AND(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
@@ -429,7 +443,7 @@ void gabe::circuits::generator::CircuitGenerator::AND(const SignedVar& input1, c
         AND(input1[i], input2[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::INV(const SignedVar& input, SignedVar& output) {
+void gabe::bcgen::CircuitGenerator::INV(const SignedVar& input, SignedVar& output) {
     // Safety checks
     _assert_equal_size(input, output);
 
@@ -438,7 +452,7 @@ void gabe::circuits::generator::CircuitGenerator::INV(const SignedVar& input, Si
         INV(input[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::OR(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
+void gabe::bcgen::CircuitGenerator::OR(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
@@ -448,7 +462,7 @@ void gabe::circuits::generator::CircuitGenerator::OR(const SignedVar& input1, co
         OR(input1[i], input2[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::XOR(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::XOR(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
@@ -458,7 +472,7 @@ void gabe::circuits::generator::CircuitGenerator::XOR(const UnsignedVar& input1,
         XOR(input1[i], input2[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::AND(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::AND(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
@@ -468,7 +482,7 @@ void gabe::circuits::generator::CircuitGenerator::AND(const UnsignedVar& input1,
         AND(input1[i], input2[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::INV(const UnsignedVar& input, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::INV(const UnsignedVar& input, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input, output);
 
@@ -477,7 +491,7 @@ void gabe::circuits::generator::CircuitGenerator::INV(const UnsignedVar& input, 
         INV(input[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::OR(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::OR(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
@@ -487,9 +501,9 @@ void gabe::circuits::generator::CircuitGenerator::OR(const UnsignedVar& input1, 
         OR(input1[i], input2[i], output[i]);
 }
 
-//void gabe::circuits::generator::CircuitGenerator::multiplication(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {}
+//void gabe::bcgen::CircuitGenerator::multiplication(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {}
 
-void gabe::circuits::generator::CircuitGenerator::addition(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::addition(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
@@ -521,7 +535,7 @@ void gabe::circuits::generator::CircuitGenerator::addition(const UnsignedVar& in
         XOR(xor_a_b[i], carry[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::subtraction(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::subtraction(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
@@ -557,7 +571,7 @@ void gabe::circuits::generator::CircuitGenerator::subtraction(const UnsignedVar&
         XOR(xor_a_b[i], carry[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::multiplication(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::multiplication(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     // TODO - Think of any safety checks
 
@@ -582,7 +596,7 @@ void gabe::circuits::generator::CircuitGenerator::multiplication(const UnsignedV
     }
 }
 
-void gabe::circuits::generator::CircuitGenerator::division(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient, UnsignedVar& output_remainder) {
+void gabe::bcgen::CircuitGenerator::division(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient, UnsignedVar& output_remainder) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output_quotient);
@@ -613,7 +627,7 @@ void gabe::circuits::generator::CircuitGenerator::division(const UnsignedVar& in
     }
 }
 
-void gabe::circuits::generator::CircuitGenerator::division_quotient(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient) {
+void gabe::bcgen::CircuitGenerator::division_quotient(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_quotient) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output_quotient);
@@ -646,13 +660,13 @@ void gabe::circuits::generator::CircuitGenerator::division_quotient(const Unsign
     }
 }
 
-void gabe::circuits::generator::CircuitGenerator::division_remainder(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_remainder) {
+void gabe::bcgen::CircuitGenerator::division_remainder(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output_remainder) {
     UnsignedVar quotient(output_remainder.size());
 
     division(input1, input2, quotient, output_remainder);
 }
 
-void gabe::circuits::generator::CircuitGenerator::multiplexer(const Wire& control, const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
+void gabe::bcgen::CircuitGenerator::multiplexer(const Wire& control, const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
@@ -674,14 +688,14 @@ void gabe::circuits::generator::CircuitGenerator::multiplexer(const Wire& contro
         OR(and_in1[i], and_in2[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::multiplexer(const SignedVar& control, const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
+void gabe::bcgen::CircuitGenerator::multiplexer(const SignedVar& control, const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
     // Safety checks
     _assert_equal_size(control, 1);
 
     multiplexer(control[0], input1, input2, output);
 }
 
-void gabe::circuits::generator::CircuitGenerator::equal(const SignedVar& input1, const SignedVar& input2, Wire& output) {
+void gabe::bcgen::CircuitGenerator::equal(const SignedVar& input1, const SignedVar& input2, Wire& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
 
@@ -699,14 +713,14 @@ void gabe::circuits::generator::CircuitGenerator::equal(const SignedVar& input1,
     INV(output, output);
 }
 
-void gabe::circuits::generator::CircuitGenerator::equal(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
+void gabe::bcgen::CircuitGenerator::equal(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {
     // Safety checks
     _assert_equal_size(output, 1);
 
     equal(input1, input1, output[0]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::multiplexer(const Wire& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::multiplexer(const Wire& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
     _assert_equal_size(input1, output);
@@ -728,14 +742,14 @@ void gabe::circuits::generator::CircuitGenerator::multiplexer(const Wire& contro
         OR(and_in1[i], and_in2[i], output[i]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::multiplexer(const UnsignedVar& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::multiplexer(const UnsignedVar& control, const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(control, 1);
 
     multiplexer(control[0], input1, input2, output);
 }
 
-void gabe::circuits::generator::CircuitGenerator::equal(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output) {
+void gabe::bcgen::CircuitGenerator::equal(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
 
@@ -753,14 +767,14 @@ void gabe::circuits::generator::CircuitGenerator::equal(const UnsignedVar& input
     INV(output, output);
 }
 
-void gabe::circuits::generator::CircuitGenerator::equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(output, 1);
 
     equal(input1, input1, output[0]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::greater(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output) {
+void gabe::bcgen::CircuitGenerator::greater(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output) {
     // TODO - Make a schematic in docs for this function, so people understand the following lines
 
     // Safety checks
@@ -795,14 +809,14 @@ void gabe::circuits::generator::CircuitGenerator::greater(const UnsignedVar& inp
         OR(middle_operations[i], output, output);
 }
 
-void gabe::circuits::generator::CircuitGenerator::greater(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::greater(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(output, 1);
 
     greater(input1, input2, output[0]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::smaller(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output) {
+void gabe::bcgen::CircuitGenerator::smaller(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output) {
     // TODO - Make a schematic in docs for this function, so people understand the following lines
 
     // Safety checks
@@ -837,14 +851,14 @@ void gabe::circuits::generator::CircuitGenerator::smaller(const UnsignedVar& inp
         OR(middle_operations[i], output, output);
 }
 
-void gabe::circuits::generator::CircuitGenerator::smaller(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::smaller(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(output, 1);
 
     smaller(input1, input2, output[0]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::greater_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output) {
+void gabe::bcgen::CircuitGenerator::greater_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
 
@@ -852,14 +866,14 @@ void gabe::circuits::generator::CircuitGenerator::greater_or_equal(const Unsigne
     INV(output, output);
 }
 
-void gabe::circuits::generator::CircuitGenerator::greater_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::greater_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(output, 1);
 
     greater_or_equal(input1, input2, output[0]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::smaller_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output) {
+void gabe::bcgen::CircuitGenerator::smaller_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, Wire& output) {
     // Safety checks
     _assert_equal_size(input1, input2);
 
@@ -867,14 +881,14 @@ void gabe::circuits::generator::CircuitGenerator::smaller_or_equal(const Unsigne
     INV(output, output);
 }
 
-void gabe::circuits::generator::CircuitGenerator::smaller_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
+void gabe::bcgen::CircuitGenerator::smaller_or_equal(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& output) {
     // Safety checks
     _assert_equal_size(output, 1);
 
     smaller_or_equal(input1, input2, output[0]);
 }
 
-void gabe::circuits::generator::CircuitGenerator::comparator(const UnsignedVar& input1, const UnsignedVar& input2, Wire& out_equal, Wire& out_greater, Wire &out_smaller) {
+void gabe::bcgen::CircuitGenerator::comparator(const UnsignedVar& input1, const UnsignedVar& input2, Wire& out_equal, Wire& out_greater, Wire &out_smaller) {
     // Safety checks
     _assert_equal_size(input1, input2);
 
@@ -923,7 +937,7 @@ void gabe::circuits::generator::CircuitGenerator::comparator(const UnsignedVar& 
     // TODO - I can't make this function have the very last wires as out_greater, out_smaller, and out_equal, as it requires the OR operation of out_greater and out_smaller to get the out_equal.
 }
 
-void gabe::circuits::generator::CircuitGenerator::comparator(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& out_equal, UnsignedVar& out_greater, UnsignedVar &out_smaller) {
+void gabe::bcgen::CircuitGenerator::comparator(const UnsignedVar& input1, const UnsignedVar& input2, UnsignedVar& out_equal, UnsignedVar& out_greater, UnsignedVar &out_smaller) {
     // Safety checks
     _assert_equal_size(out_equal, 1);
     _assert_equal_size(out_greater, 1);

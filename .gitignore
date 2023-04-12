@@ -37,6 +37,6 @@
 #
 #
 build/*
-bin/*
 circuits/*
+logs/*
 .vscode

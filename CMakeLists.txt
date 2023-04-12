@@ -68,13 +68,10 @@ endif()
 ###
 set(bcgen_sources
     ${CMAKE_BINARY_DIR}/bcgen/version.cpp
-    src/Wire.cpp
-    src/Variable.cpp
-    src/SignedVar.cpp
-    src/UnsignedVar.cpp
-    src/CircuitGenerator.cpp
-    src/BristolCircuitGenerator.cpp
-    src/LibscapiCircuitGenerator.cpp
+    src/bcgen/variables.cpp
+    src/bcgen/CircuitGenerator.cpp
+    src/bcgen/BristolCircuitGenerator.cpp
+    src/bcgen/LibscapiCircuitGenerator.cpp
 )
 add_library(bcgen ${bcgen_sources})
 add_library(bcgen::bcgen ALIAS bcgen)
