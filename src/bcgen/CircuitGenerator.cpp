@@ -1,19 +1,30 @@
+#include <bcgen/version.hpp>
 #include <bcgen/CircuitGenerator.hpp>
 #include <filesystem>
 
-gabe::bcgen::CircuitGenerator::CircuitGenerator() {}
+gabe::bcgen::CircuitGenerator::CircuitGenerator(const std::string &circuit_name) : _circuit_name(circuit_name), _circuits_directory("circuits") {
+    _setup_logger();
+    _create_save_directory();
+}
 
 gabe::bcgen::CircuitGenerator::CircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory) : _circuit_name(circuit_name), _circuits_directory(circuits_directory) {
     _setup_logger();
     _create_save_directory();
 }
 
-gabe::bcgen::CircuitGenerator::~CircuitGenerator() {}
+gabe::bcgen::CircuitGenerator::~CircuitGenerator() {
+    std::remove((_circuits_directory / (_circuit_name + "_temp.txt")).c_str());
+}
 
 void gabe::bcgen::CircuitGenerator::_setup_logger() {
     _logger = spdlog::basic_logger_mt("bcgen_" + _circuit_name, "logs/" + _circuit_name + ".txt", true);
     _logger->set_level(spdlog::level::trace);
     _logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%=7l] %v");
+
+    // Logging
+    _logger->info(std::string(48, '*'));
+    _logger->info("Boolean Circuit Generator V{}", gabe::bcgen::get_version());
+    _logger->info(std::string(48, '*'));
 }
 
 void gabe::bcgen::CircuitGenerator::_create_save_directory() {
@@ -21,10 +32,15 @@ void gabe::bcgen::CircuitGenerator::_create_save_directory() {
     if (_circuits_directory.empty()) return;
 
     // Create circuits directory in current directory
-    std::filesystem::create_directory(_circuits_directory);
+    if (std::filesystem::create_directory(_circuits_directory)) {
+        // Logging
+        _logger->info("Circuits directory created.");
+    }
 
     // Logging
-    // TODO
+    _logger->debug(
+        fmt::format("> Circuits will be generated at: {}", std::filesystem::absolute(_circuits_directory).c_str())
+    );
 }
 
 // TODO: REMOVE
@@ -67,6 +83,14 @@ void gabe::bcgen::CircuitGenerator::_write_circuit(std::ofstream& file) {
 
     for (auto & line : _buffer) {
         file.write(line.c_str(), line.size());
+    }
+}
+
+void gabe::bcgen::CircuitGenerator::_assert_add_input(uint64_t size) {
+    if (_counter_wires + size > _expected_input_wires) {
+        const std::string error_msg = fmt::format("There aren't enough input wires available to add an input of size {}.", size);
+        _logger->error(error_msg);
+        throw std::runtime_error(error_msg);
     }
 }
 
@@ -127,7 +151,7 @@ void gabe::bcgen::CircuitGenerator::add_input_party(uint64_t size) {
 
     // Logging
     _logger->info("Added input party {} with {} wires.", _input_parties.size(), size);
-    _logger->debug("Party {} assigned wires: [{}:{}]", _input_parties.size(), _expected_input_wires - size, _expected_input_wires - 1);
+    _logger->debug("> Party {} assigned wires: [{}:{}]", _input_parties.size(), _expected_input_wires - size, _expected_input_wires - 1);
 }
 
 void gabe::bcgen::CircuitGenerator::add_output_party(uint64_t size) {
@@ -138,22 +162,25 @@ void gabe::bcgen::CircuitGenerator::add_output_party(uint64_t size) {
 }
 
 void gabe::bcgen::CircuitGenerator::add_input(Wire& wire) {
-    if (_counter_wires >= _expected_input_wires) {
-        const std::string error_msg = "There aren't enough input wires available.";
-        _logger->error(error_msg);
-        throw std::runtime_error(error_msg);
-    }
+    // Safety check
+    _assert_add_input(1);
     
     // Assigns a label to the wire
     wire.label = _counter_wires++;
 }
 
 void gabe::bcgen::CircuitGenerator::add_input(SignedVar& variable) {
+    // Safety check
+    _assert_add_input(variable.size());
+
     for (int i = 0; i < variable.size(); i++)
         add_input( variable[i] );
 }
 
 void gabe::bcgen::CircuitGenerator::add_input(UnsignedVar& variable) {
+    // Safety check
+    _assert_add_input(variable.size());
+    
     for (int i = 0; i < variable.size(); i++)
         add_input( variable[i] );
 }
@@ -188,13 +215,33 @@ void gabe::bcgen::CircuitGenerator::start() {
 
 void gabe::bcgen::CircuitGenerator::stop() {
     // Open circuit file
-    _circuit = std::ofstream(
-        _circuits_directory + _circuit_name + ".txt",
+    std::ofstream circuit(
+        _circuits_directory / (_circuit_name + ".txt"),
         std::ios::out | std::ios::trunc
     );
 
-    _write_header(_circuit);
-    _write_circuit(_circuit);
+    // Safety check
+    if (circuit.fail()) {
+        const std::string error_msg = "Failed to write circuit. Cannot open file.";
+        _logger->error(error_msg);
+        throw std::runtime_error(error_msg);
+    }
+
+    // Writing phase
+    _write_header(circuit);
+    _write_circuit(circuit);
+
+    // Closes the circuit file
+    circuit.close();
+
+    // Logging
+    _logger->info("Successfully created circuit file.");
+    _logger->debug("> Total gates: {}", _counter_gates);
+    _logger->trace("-> OR: {}", _gates_counters[_gates_map["or"]]);
+    _logger->trace("-> XOR: {}", _gates_counters[_gates_map["xor"]]);
+    _logger->trace("-> AND: {}", _gates_counters[_gates_map["and"]]);
+    _logger->trace("-> INV: {}", _gates_counters[_gates_map["inv"]]);
+    _logger->debug("> Total wires: {}", _counter_wires);
 }
 
 void gabe::bcgen::CircuitGenerator::assign_value(SignedVar& variable, int64_t value) {
@@ -390,7 +437,6 @@ void gabe::bcgen::CircuitGenerator::XOR(const Wire& input1, const Wire& input2, 
 
     // Counters increment
     _counter_wires++;
-    _counter_xor_gates++;
 }
 
 void gabe::bcgen::CircuitGenerator::AND(const Wire& input1, const Wire& input2, Wire& output) {
@@ -400,7 +446,6 @@ void gabe::bcgen::CircuitGenerator::AND(const Wire& input1, const Wire& input2, 
 
     // Counters increment
     _counter_wires++;
-    _counter_and_gates++;
 }
 
 void gabe::bcgen::CircuitGenerator::INV(const Wire& input, Wire& output) {
@@ -410,7 +455,6 @@ void gabe::bcgen::CircuitGenerator::INV(const Wire& input, Wire& output) {
 
     // Counters increment
     _counter_wires++;
-    _counter_inv_gates++;
 }
 
 void gabe::bcgen::CircuitGenerator::OR(const Wire& input1, const Wire& input2, Wire& output) {
@@ -420,7 +464,6 @@ void gabe::bcgen::CircuitGenerator::OR(const Wire& input1, const Wire& input2, W
 
     // Counters increment
     _counter_wires++;
-    _counter_or_gates++;
 }
 
 void gabe::bcgen::CircuitGenerator::XOR(const SignedVar& input1, const SignedVar& input2, SignedVar& output) {

@@ -11,7 +11,7 @@ gabe::bcgen::BristolCircuitGenerator::BristolCircuitGenerator(const std::string 
 
 void gabe::bcgen::BristolCircuitGenerator::_write_header(std::ofstream& file) {
     // Header construction
-    const std::string header = fmt::format("{} {}\n", _counter_gates["total"], _counter_wires);
+    const std::string header = fmt::format("{} {}\n", _counter_gates, _counter_wires);
     const std::string inputs = fmt::format("{} {}\n", _input_parties.size(), fmt::join(_input_parties, " "));
     const std::string outputs = fmt::format("{} {}\n", _output_parties.size(), fmt::join(_output_parties, " "));
     const std::string linebrk = "\n";

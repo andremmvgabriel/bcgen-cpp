@@ -83,3 +83,8 @@ target_compile_definitions(bcgen PUBLIC ALLOW_OR_GATES=${OR_GATES})
 
 # add_subdirectory( tests )
 # add_subdirectory( examples )
+
+
+
+add_executable(Main main.cpp)
+target_link_libraries(Main PUBLIC bcgen::bcgen spdlog::spdlog_header_only)

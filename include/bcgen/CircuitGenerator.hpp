@@ -19,23 +19,14 @@ namespace gabe {
         class CircuitGenerator
         {
         protected:
-            std::string _circuits_directory;
-
-            std::ofstream _circuit;
             std::string _circuit_name;
-
-            std::fstream _temp_circuit;
-            std::string _temp_circuit_name;
+            std::filesystem::path _circuits_directory;
 
             // Circuit info
             std::vector<uint64_t> _input_parties;
             std::vector<uint64_t> _output_parties;
             uint64_t _counter_wires = 0x00;
             uint64_t _counter_gates = 0x00;
-            uint64_t _counter_xor_gates = 0x00;
-            uint64_t _counter_and_gates = 0x00;
-            uint64_t _counter_inv_gates = 0x00;
-            uint64_t _counter_or_gates = 0x00;
             std::unordered_map<std::string, uint64_t> _gates_counters;
 
             std::unordered_map<std::string, std::string> _gates_map;
@@ -59,6 +50,8 @@ namespace gabe {
             void _create_save_directory();
             void _setup_logger();
 
+            void _assert_add_input(uint64_t size);
+
             void _assert_equal_size(const SignedVar& var1, const SignedVar& var2);
             void _assert_equal_size(const UnsignedVar& var1, const UnsignedVar& var2);
             void _assert_equal_size(const SignedVar& var, const uint64_t size);
@@ -69,7 +62,7 @@ namespace gabe {
             void _write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate);
 
         protected:
-            CircuitGenerator();
+            CircuitGenerator() = delete;
             CircuitGenerator(const std::string &circuit_name);
             CircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory);
 

@@ -49,7 +49,7 @@ void gabe::bcgen::LibscapiCircuitGenerator::_write_header(std::ofstream& file) {
     };
     
     // Header construction
-    const std::string header = fmt::format("{} {}\n\n", _counter_gates["total"], _input_parties.size());
+    const std::string header = fmt::format("{} {}\n\n", _counter_gates, _input_parties.size());
     const std::string inputs = fmt::format("{}", prepare_inputs());
     const std::string outputs = fmt::format("{}", prepare_outputs());
 
