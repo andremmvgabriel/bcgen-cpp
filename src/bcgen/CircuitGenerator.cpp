@@ -116,9 +116,14 @@ void gabe::bcgen::CircuitGenerator::_assert_equal_size(const UnsignedVar& var, c
 }
 
 void gabe::bcgen::CircuitGenerator::_flush_buffer(std::ofstream& file) {
+    // Writes all the buffer lines into the file
     for (auto & line : _buffer) {
         file.write(line.c_str(), line.size());
     }
+
+    // Clears the buffer
+    _buffer.clear();
+    _buffer_size = 0;
 }
 
 void gabe::bcgen::CircuitGenerator::_write_gate(const std::string& line, const std::string& gate) {
@@ -131,7 +136,7 @@ void gabe::bcgen::CircuitGenerator::_write_gate(const std::string& line, const s
         // Open the temporary circuit file
         std::ofstream temp_circuit(
             _circuits_directory / (_circuit_name + "_temp.txt"),
-            std::ios::out
+            std::ios::out | std::ios::app
         );
 
         // Flushes the buffer into the temporary file
@@ -153,6 +158,11 @@ void gabe::bcgen::CircuitGenerator::_write_2_1_gate(const uint64_t input1, const
     // Line construction
     const std::string line = fmt::format("2 1 {} {} {} {}\n", input1 < input2 ? input1 : input2, input1 < input2 ? input2 : input1, output, gate);
     _write_gate(line, gate);
+}
+
+void gabe::bcgen::CircuitGenerator::limit_buffer(uint64_t size) {
+    _buffer_max_size = size;
+    _logger->info(fmt::format("Circuit generator buffer is now limited to {} bytes.", size));
 }
 
 void gabe::bcgen::CircuitGenerator::add_input_party(uint64_t size) {

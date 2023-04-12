@@ -1,5 +1,6 @@
 #pragma once
 
+#include <numeric>
 #include <cstdint>
 #include <string>
 #include <memory>
@@ -19,33 +20,33 @@ namespace gabe {
         class CircuitGenerator
         {
         protected:
+            // Circuit name and location
             std::string _circuit_name;
             std::filesystem::path _circuits_directory;
 
             // Circuit info
             std::vector<uint64_t> _input_parties;
             std::vector<uint64_t> _output_parties;
+            std::unordered_map<std::string, std::string> _gates_map;
+
+            // Circuit info complement - Control variables
             uint64_t _counter_wires = 0x00;
             uint64_t _counter_gates = 0x00;
+            uint64_t _expected_input_wires = 0x00;
+            uint64_t _expected_output_wires = 0x00;
             std::unordered_map<std::string, uint64_t> _gates_counters;
 
-            std::unordered_map<std::string, std::string> _gates_map;
+            // Circuit buffer - Memory management
+            uint64_t _buffer_size = 0x00;
+            uint64_t _buffer_max_size = std::numeric_limits<uint64_t>::max();
+            std::vector<std::string> _buffer;
 
             // Zero and One wires
             Wire _zero_wire; // Wire that is always zero in the circuit
             Wire _one_wire; // Wire that is always one in the circuit
 
-            // Control variables
-            bool valid = false;
-            uint64_t _expected_input_wires = 0x00;
-            uint64_t _expected_output_wires = 0x00;
-
             // Logging
             std::shared_ptr<spdlog::logger> _logger;
-
-            uint64_t _buffer_size = 0x00;
-            uint64_t _buffer_max_size = 0xFF;
-            std::vector<std::string> _buffer;
 
         private:
             void _create_save_directory();
@@ -74,6 +75,9 @@ namespace gabe {
             virtual void _write_circuit(std::ofstream& file);
 
         public:
+            // Memory management
+            void limit_buffer(uint64_t size);
+
             // Parties
             void add_input_party(uint64_t size);
             void add_output_party(uint64_t size);
@@ -88,6 +92,7 @@ namespace gabe {
             void add_output(SignedVar& wire);
             void add_output(UnsignedVar& wire);
 
+            // Start & stop
             void start();
             void stop();
 
