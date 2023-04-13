@@ -31,25 +31,17 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/lib)
 # set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/lib)
 
-
-
-###
-# Versioning
-###
-configure_file(
-    cmake/version.cpp.in
-    ${CMAKE_BINARY_DIR}/bcgen/version.cpp
-    @ONLY
-)
-
-
-
 ###
 # Project Options
 ###
 option(OR_GATES "Allow generated circuits with OR gates" 1)
+option(BCGEN_DOCS "Generate bcgen project Doxygen documentation" OFF)
 
-
+###
+# Project Includes
+###
+include(cmake/modules/versioning.cmake)
+include(cmake/modules/documentation.cmake)
 
 ###
 # Project Dependencies

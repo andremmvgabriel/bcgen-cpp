@@ -3,6 +3,7 @@
         "llvm-vs-code-extensions.vscode-clangd",
         "xaver.clang-format",
         "ms-vscode.cmake-tools",
-        "mhutchie.git-graph"
+        "mhutchie.git-graph",
+        "cschlosser.doxdocgen"
     ]
 }
