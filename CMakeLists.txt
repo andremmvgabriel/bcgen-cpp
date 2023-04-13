@@ -1,12 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(BooleanCircuitGenerator
+project(BCGen
     VERSION 0.1.0
-    DESCRIPTION "TBD"
+    DESCRIPTION "BCGen stands for Boolean Circuit Generator, and it is a library developed to generate boolean circuits in text files that can be used by cryptographic libraries for multiparty computations."
     LANGUAGES CXX
 )
-
-
 
 ###
 # Includes
@@ -82,3 +80,8 @@ target_compile_definitions(bcgen PUBLIC ALLOW_OR_GATES=${OR_GATES})
 
 # add_subdirectory( tests )
 # add_subdirectory( examples )
+
+
+
+add_executable(Main main.cpp)
+target_link_libraries(Main PUBLIC bcgen::bcgen)

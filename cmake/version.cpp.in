@@ -1,21 +1,21 @@
 #include <bcgen/version.hpp>
 
 const char* gabe::bcgen::get_version() {
-    return "@BooleanCircuitGenerator_VERSION@";
+    return "@PROJECT_VERSION@";
 }
 
 uint16_t gabe::bcgen::get_version_major() {
-    return @BooleanCircuitGenerator_VERSION_MAJOR@;
+    return @PROJECT_VERSION_MAJOR@;
 }
 
 uint16_t gabe::bcgen::get_version_minor() {
-    return @BooleanCircuitGenerator_VERSION_MINOR@+0;
+    return @PROJECT_VERSION_MINOR@+0;
 }
 
 uint16_t gabe::bcgen::get_version_patch() {
-    return @BooleanCircuitGenerator_VERSION_PATCH@+0;
+    return @PROJECT_VERSION_PATCH@+0;
 }
 
 uint16_t gabe::bcgen::get_version_tweak() {
-    return @BooleanCircuitGenerator_VERSION_TWEAK@+0;
+    return @PROJECT_VERSION_TWEAK@+0;
 }
