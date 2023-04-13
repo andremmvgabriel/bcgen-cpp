@@ -36,6 +36,7 @@
 #
 #
 #
+.cache/*
 build/*
 circuits/*
 logs/*
