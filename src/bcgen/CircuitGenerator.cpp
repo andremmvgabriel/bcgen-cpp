@@ -1,6 +1,5 @@
 #include <bcgen/version.hpp>
 #include <bcgen/CircuitGenerator.hpp>
-#include <filesystem>
 
 gabe::bcgen::CircuitGenerator::CircuitGenerator(const std::string &circuit_name) : _circuit_name(circuit_name), _circuits_directory("circuits") {
     _setup_logger();
@@ -31,7 +30,7 @@ void gabe::bcgen::CircuitGenerator::_create_save_directory() {
     // There is nothing to be created if the specified directory is empty
     if (_circuits_directory.empty()) return;
 
-    // Create circuits directory in current directory
+    // Create circuits directory
     if (std::filesystem::create_directory(_circuits_directory)) {
         // Logging
         _logger->info("Circuits directory created.");
@@ -176,6 +175,7 @@ void gabe::bcgen::CircuitGenerator::add_input_party(uint64_t size) {
 
 void gabe::bcgen::CircuitGenerator::add_output_party(uint64_t size) {
     _output_parties.push_back(size);
+    _expected_output_wires += size;
 
     // Logging
     _logger->info("Added output party {} with {} wires.", _output_parties.size(), size);
@@ -218,7 +218,14 @@ void gabe::bcgen::CircuitGenerator::add_output(UnsignedVar& variable) {
 }
 
 void gabe::bcgen::CircuitGenerator::start() {
-    // Safety check
+    // Safety check - No input wires
+    if (!_expected_input_wires) {
+        const std::string error_msg = "There are no input wires defined.";
+        _logger->error(error_msg);
+        throw std::runtime_error(error_msg);
+    }
+
+    // Safety check - Dead wires
     if (_counter_wires < _expected_input_wires) {
         const std::string error_msg = "Dead wires in the circuit. There are input wires that are not assigned to a variable.";
         _logger->error(error_msg);
@@ -227,7 +234,7 @@ void gabe::bcgen::CircuitGenerator::start() {
 
     // Creates the zero and one wires
     XOR( Wire(), Wire(), _zero_wire );
-    INV( _zero_wire, _zero_wire ); 
+    INV( _zero_wire, _one_wire ); 
 
     // Logging
     _logger->info("Starting the circuit file creation...");
