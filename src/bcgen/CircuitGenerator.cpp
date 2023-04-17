@@ -293,42 +293,50 @@ void gabe::bcgen::CircuitGenerator::assign_value(UnsignedVar& variable, uint64_t
 
 void gabe::bcgen::CircuitGenerator::shift_left(SignedVar &variable, uint64_t amount) {
     // Shifting
-    for (uint64_t i = variable.size() - 1; i >= amount; i--)
-        variable[i] = variable[i - amount];
-    
+    for (uint64_t i = variable.size(); i > amount; i--) {
+        variable[i-1] = variable[i-1 - amount];
+    }
+
     // Assign 0 to the new wires
-    for (uint64_t i = 0; i < amount && i < variable.size(); i++)
+    for (uint64_t i = 0; i < amount && i < variable.size(); i++) {
         variable[i] = _zero_wire;
+    }
 }
 
 void gabe::bcgen::CircuitGenerator::shift_left(UnsignedVar &variable, uint64_t amount) {
     // Shifting
-    for (uint64_t i = variable.size() - 1; i >= amount; i--)
-        variable[i] = variable[i - amount];
+    for (uint64_t i = variable.size(); i > amount; i--) {
+        variable[i-1] = variable[i-1 - amount];
+    }
     
     // Assign 0 to the new wires
-    for (uint64_t i = 0; i < amount && i < variable.size(); i++)
+    for (uint64_t i = 0; i < amount && i < variable.size(); i++) {
         variable[i] = _zero_wire;
+    }
 }
 
 void gabe::bcgen::CircuitGenerator::shift_right(SignedVar &variable, uint64_t amount) {
     // Shifting
-    for (int64_t i = 0; i < (int64_t)variable.size() - (int64_t)amount; i++)
-        variable[i] = variable[i + amount];
+    for (uint64_t i = variable.size(); i > amount; i--) {
+        variable[i-1 - amount] = variable[i-1];
+    }
     
     // Assign 0 to the new wires
-    for (int64_t i = variable.size() - 1; i > (int64_t)variable.size() - 1 - (int64_t)amount && i >= 0; i--)
-        variable[i] = _zero_wire;
+    for (uint64_t i = 0; i < amount && i < variable.size(); i++) {
+        variable[variable.size() - 1 - i] = _zero_wire;
+    }
 }
 
 void gabe::bcgen::CircuitGenerator::shift_right(UnsignedVar &variable, uint64_t amount) {
     // Shifting
-    for (int64_t i = 0; i < (int64_t)variable.size() - (int64_t)amount; i++)
-        variable[i] = variable[i + amount];
+    for (uint64_t i = variable.size(); i > amount; i--) {
+        variable[i-1 - amount] = variable[i-1];
+    }
     
     // Assign 0 to the new wires
-    for (int64_t i = variable.size() - 1; i > (int64_t)variable.size() - 1 - (int64_t)amount && i >= 0; i--)
-        variable[i] = _zero_wire;
+    for (uint64_t i = 0; i < amount && i < variable.size(); i++) {
+        variable[variable.size() - 1 - i] = _zero_wire;
+    }
 }
 
 void gabe::bcgen::CircuitGenerator::shift_left(const SignedVar& variable, uint64_t amount, SignedVar& output) {
