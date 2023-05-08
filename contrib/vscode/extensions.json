@@ -4,6 +4,8 @@
         "xaver.clang-format",
         "ms-vscode.cmake-tools",
         "mhutchie.git-graph",
-        "cschlosser.doxdocgen"
+        "cschlosser.doxdocgen",
+        "aaron-bond.better-comments",
+        "ExodiusStudios.comment-anchors"
     ]
 }

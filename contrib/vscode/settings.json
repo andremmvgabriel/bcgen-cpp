@@ -1,4 +1,5 @@
 {
+    "editor.rulers": [ 160 ],
     "files.associations": {
         "array": "cpp",
         "atomic": "cpp",
@@ -50,5 +51,35 @@
         "typeinfo": "cpp",
         "utility": "cpp"
     },
-    "clangd.checkUpdates": true
+    "clangd.checkUpdates": true,
+    "doxdocgen.generic.useGitUserName": true,
+    "doxdocgen.generic.useGitUserEmail": true,
+    "doxdocgen.c.lastLine": "**/",
+    "doxdocgen.generic.order": [
+        "brief",
+        "empty",
+        "tparam",
+        "param",
+        "return",
+        "custom"
+    ],
+    "doxdocgen.generic.returnTemplate": "@return ",
+    "doxdocgen.file.fileOrder": [
+        "file",
+        "author",
+        "version",
+        "date",
+        "empty",
+        "brief",
+        "empty",
+        "copyright",
+        "custom"
+    ],
+    "doxdocgen.file.copyrightTag": [
+        "@copyright Copyright (c) {year}"
+    ],
+    "commentAnchors.tags.matchPrefix": [
+        "// > ",
+        "# > "
+    ]
 }
