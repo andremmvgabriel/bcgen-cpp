@@ -1,8 +1,4 @@
-#include <bcgen/variables.hpp>
-
-// ****
-// Variable class
-// ****
+#include <bcgen/CircuitGenerator.hpp>
 
 gabe::bcgen::Variable::Variable() {}
 
