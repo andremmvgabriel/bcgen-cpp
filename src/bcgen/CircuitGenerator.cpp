@@ -1,19 +1,6 @@
 #include <bcgen/version.hpp>
 #include <bcgen/CircuitGenerator.hpp>
-#include <cstdint>
 #include <fmt/format.h>
-
-gabe::bcgen::CircuitGenerator::CircuitGenerator(const std::string &circuit_name) : _circuit_name(circuit_name), _circuits_directory("circuits") {
-    _create_save_directory();
-}
-
-gabe::bcgen::CircuitGenerator::CircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory) : _circuit_name(circuit_name), _circuits_directory(circuits_directory) {
-    _create_save_directory();
-}
-
-gabe::bcgen::CircuitGenerator::~CircuitGenerator() {
-    std::remove((_circuits_directory / (_circuit_name + "_temp.txt")).c_str());
-}
 
 void gabe::bcgen::CircuitGenerator::_create_save_directory() {
     // There is nothing to be created if the specified directory is empty
@@ -21,36 +8,6 @@ void gabe::bcgen::CircuitGenerator::_create_save_directory() {
 
     // Create circuits directory
     std::filesystem::create_directory(_circuits_directory);
-}
-
-void gabe::bcgen::CircuitGenerator::_write_header(std::ofstream& file) {}
-
-void gabe::bcgen::CircuitGenerator::_write_circuit(std::ofstream& file) {
-    // Open the temporary circuit file
-    std::ifstream temp_circuit(
-        _circuits_directory / (_circuit_name + "_temp.txt"),
-        std::ios::in
-    );
-
-    // Can only move temp contents if file was created
-    if (!temp_circuit.fail()) {
-        // Contents transfer
-        std::string line;
-        while (std::getline(temp_circuit, line)) {
-            line += "\n";
-            file.write(line.c_str(), line.size());
-        }
-    }
-
-    // Writes unflushed data inside the buffer 
-    _flush_buffer(file);
-}
-
-void gabe::bcgen::CircuitGenerator::_assert_add_input(uint64_t size) {
-    if (_counter_wires + size > _expected_input_wires) {
-        const std::string error_msg = fmt::format("There aren't enough input wires available to add an input of size {}.", size);
-        throw std::runtime_error(error_msg);
-    }
 }
 
 void gabe::bcgen::CircuitGenerator::_flush_buffer(std::ofstream& file) {
@@ -86,16 +43,73 @@ void gabe::bcgen::CircuitGenerator::_write_gate(const std::string& line, const s
     _gates_counters[gate]++;
 }
 
-void gabe::bcgen::CircuitGenerator::_write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate) {
+void gabe::bcgen::CircuitGenerator::_write_1_1_gate(const uint64_t in_a, const uint64_t output, const std::string &gate) {
     // Line construction
-    const std::string line = fmt::format("1 1 {} {} {}\n", input, output, gate);
+    const std::string line = fmt::format("1 1 {} {} {}\n", in_a, output, gate);
     _write_gate(line, gate);
 }
 
-void gabe::bcgen::CircuitGenerator::_write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate) {
+void gabe::bcgen::CircuitGenerator::_write_2_1_gate(const uint64_t in_a, const uint64_t in_b, const uint64_t output, const std::string &gate) {
     // Line construction
-    const std::string line = fmt::format("2 1 {} {} {} {}\n", input1 < input2 ? input1 : input2, input1 < input2 ? input2 : input1, output, gate);
+    const std::string line = fmt::format("2 1 {} {} {} {}\n", in_a < in_b ? in_a : in_b, in_a < in_b ? in_b : in_a, output, gate);
     _write_gate(line, gate);
+}
+
+void gabe::bcgen::CircuitGenerator::_assert_equal_size(const Variable &variable, uint64_t size) {
+    // Checks if the variable as the expected size
+    if (variable.size() != size) {
+        // Creates the error message
+        const std::string error_msg = fmt::format("Variable should have a size of {}.", size);
+
+        // Raises the error
+        throw std::runtime_error(error_msg);
+    }
+}
+
+void gabe::bcgen::CircuitGenerator::_assert_add_input(uint64_t size) {
+    // Checks if there are enough available input wires to add the input
+    if (_counter_wires + size > _expected_input_wires) {
+        // Creates the error message
+        const std::string error_msg = fmt::format("There aren't enough input wires available to add an input of size {}.", size);
+        
+        // Raises the error
+        throw std::runtime_error(error_msg);
+    }
+}
+
+gabe::bcgen::CircuitGenerator::CircuitGenerator(const std::string &circuit_name) : _circuit_name(circuit_name), _circuits_directory("circuits") {
+    _create_save_directory();
+}
+
+gabe::bcgen::CircuitGenerator::CircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory) : _circuit_name(circuit_name), _circuits_directory(circuits_directory) {
+    _create_save_directory();
+}
+
+gabe::bcgen::CircuitGenerator::~CircuitGenerator() {
+    std::remove((_circuits_directory / (_circuit_name + "_temp.txt")).c_str());
+}
+
+void gabe::bcgen::CircuitGenerator::_write_header(std::ofstream& file) {}
+
+void gabe::bcgen::CircuitGenerator::_write_circuit(std::ofstream& file) {
+    // Open the temporary circuit file
+    std::ifstream temp_circuit(
+        _circuits_directory / (_circuit_name + "_temp.txt"),
+        std::ios::in
+    );
+
+    // Can only move temp contents if file was created
+    if (!temp_circuit.fail()) {
+        // Contents transfer
+        std::string line;
+        while (std::getline(temp_circuit, line)) {
+            line += "\n";
+            file.write(line.c_str(), line.size());
+        }
+    }
+
+    // Writes unflushed data inside the buffer 
+    _flush_buffer(file);
 }
 
 void gabe::bcgen::CircuitGenerator::limit_buffer(uint64_t size) {
@@ -112,6 +126,23 @@ void gabe::bcgen::CircuitGenerator::add_output_party(uint64_t size) {
     _expected_output_wires += size;
 }
 
+void gabe::bcgen::CircuitGenerator::add_input(Wire& wire) {
+    // Safety check
+    _assert_add_input(1);
+    
+    // Assigns a label to the wire
+    wire.label = _counter_wires++;
+}
+
+void gabe::bcgen::CircuitGenerator::add_input(Variable& variable) {
+    // Safety check
+    _assert_add_input(variable.size());
+
+    // Assigns a label to all the wires
+    for (int i = 0; i < variable.size(); i++) {
+        variable[i].label = _counter_wires++;
+    }
+}
 
 void gabe::bcgen::CircuitGenerator::start() {
     // Safety check - No input wires
@@ -151,101 +182,14 @@ void gabe::bcgen::CircuitGenerator::stop() {
     // Closes the circuit file
     circuit.close();
 
-    // Logging
-    printf("Successfully created circuit file.\n");
+    // Final output
+    printf("\nSuccessfully created circuit file.\n");
     printf("> Total gates: %lu\n", _counter_gates);
     printf("-> OR: %lu\n", _gates_counters[_gates_map["or"]]);
     printf("-> XOR: %lu\n", _gates_counters[_gates_map["xor"]]);
     printf("-> AND: %lu\n", _gates_counters[_gates_map["and"]]);
     printf("-> INV: %lu\n", _gates_counters[_gates_map["inv"]]);
     printf("> Total wires: %lu\n", _counter_wires);
-}
-
-
-void gabe::bcgen::CircuitGenerator::twos_complement(SignedVar& variable) {
-    // TODO - Complete this function...
-}
-
-void gabe::bcgen::CircuitGenerator::twos_complement(UnsignedVar& variable) {
-    // Variable creations
-    UnsignedVar one(variable.size());
-
-    // Variable value initializations
-    assign_value(one, 1);
-
-    // Algorithm
-    INV(variable, variable);
-    // addition(one, variable, variable);
-}
-
-void gabe::bcgen::CircuitGenerator::twos_complement(const SignedVar& variable, SignedVar& output) {
-    output = variable;
-    twos_complement(output);
-}
-
-void gabe::bcgen::CircuitGenerator::twos_complement(const UnsignedVar& variable, UnsignedVar& output) {
-    output = variable;
-    twos_complement(output);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void gabe::bcgen::CircuitGenerator::_assert_equal_size(const Variable &variable, uint64_t size) {
-    // Checks if the variable as the expected size
-    if (variable.size() != size) {
-        // Creates the error message
-        const std::string error_msg = fmt::format("Variable should have a size of {}.", size);
-
-        // Raises the error
-        throw std::runtime_error(error_msg);
-    }
-}
-
-void gabe::bcgen::CircuitGenerator::add_input(Wire& wire) {
-    // Safety check
-    _assert_add_input(1);
-    
-    // Assigns a label to the wire
-    wire.label = _counter_wires++;
-}
-
-void gabe::bcgen::CircuitGenerator::add_input(Variable& variable) {
-    // Safety check
-    _assert_add_input(variable.size());
-
-    // Assigns a label to all the wires
-    for (int i = 0; i < variable.size(); i++) {
-        variable[i].label = _counter_wires++;
-    }
 }
 
 void gabe::bcgen::CircuitGenerator::assign_value(Wire& wire, uint8_t value) {

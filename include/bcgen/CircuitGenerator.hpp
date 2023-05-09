@@ -11,115 +11,176 @@
 
 namespace gabe {
     namespace bcgen {
+        /** @brief Wire structure. **/
         struct Wire {
-            uint64_t label = 0;
+            uint64_t label = 0; /**<Wire label.*/
         };
 
+        /**
+         * @brief Variable class.
+         * 
+         * -----
+         * 
+         * This class has a vector that contains wires. The less the index in the vector, the least significant the wire is.
+         * 
+         * @note A variable object cannot be instantiated without specifying a size.
+        **/
         class Variable
         {
         protected:
-            std::vector<Wire> _wires;
+            std::vector<Wire> _wires; /**<Variable wires.*/
         
         public:
-            Variable();
+            /** @brief Default construction of a new Varaible object is deleted. **/
+            Variable() = delete;
+
+            /**
+             * @brief Construct a new Variable object.
+             * 
+             * -----
+             * 
+             * Creates a new object of type Variable with a specified number of wires.
+             * 
+             * @param number_wires Variable size.
+            **/
             Variable(uint64_t number_wires);
 
         public:
+            /**
+             * @brief Accesses a wire positioned in an input index.
+             * 
+             * -----
+             * 
+             * This method allows the mutation of wire value that is being accessed. 
+             * 
+             * @param index Wire index.
+             * @return Accessed wire.
+            **/
             Wire& operator [] (uint64_t index);
+
+            /**
+             * @brief Accesses a wire positioned in an input index.
+             * 
+             * -----
+             * 
+             * This method does allows the mutation of wire value that is being accessed. 
+             * 
+             * @param Wire index.
+             * @return Accessed wire.
+            **/
             const Wire& operator [] (uint64_t index) const;
+
+            /**
+             * @brief Get the size of the variable.
+             * @return Size of the variable (number wires).
+            **/
             uint64_t size() const;
         };
-
-        class SignedVar : public Variable
-        {
-        public:
-            SignedVar();
-            SignedVar(uint64_t number_wires);
-        };
-
-        class UnsignedVar : public Variable
-        {
-        public:
-            UnsignedVar();
-            UnsignedVar(uint64_t number_wires);
-        };
-
+        
+        /**
+         * @brief Circuit generator class.
+         * 
+         * -----
+         * 
+         * This class has the core functionality of a circuit generator. Every class that extends from this will inherite this core methods. The child classes can also overwrite two methods that should be changed for specialized purposes.
+         * 
+         * @note This class is abstract and designed to not be able to be instantiated. It is meant to be extended from, and its child dedicated to a circuit format.
+        **/
         class CircuitGenerator
         {
         protected:
             // Circuit name and location
-            std::string _circuit_name;
-            std::filesystem::path _circuits_directory;
+            std::string _circuit_name; /**<Circuit file name.*/
+            std::filesystem::path _circuits_directory; /**<Circuit location.*/
 
             // Circuit info
-            std::vector<uint64_t> _input_parties;
-            std::vector<uint64_t> _output_parties;
-            std::unordered_map<std::string, std::string> _gates_map;
+            std::vector<uint64_t> _input_parties; /**<Input parties and their sizes.*/
+            std::vector<uint64_t> _output_parties; /**<Output parties and their sizes.*/
+            std::unordered_map<std::string, std::string> _gates_map; /**<Mapping of gates names.*/
 
             // Circuit info complement - Control variables
-            uint64_t _counter_wires = 0x00;
-            uint64_t _counter_gates = 0x00;
-            uint64_t _expected_input_wires = 0x00;
-            uint64_t _expected_output_wires = 0x00;
-            std::unordered_map<std::string, uint64_t> _gates_counters;
+            uint64_t _counter_wires = 0x00; /**<Control variable to count wires.*/
+            uint64_t _counter_gates = 0x00; /**<Control variable to count gates.*/
+            uint64_t _expected_input_wires = 0x00; /**<Input wires expected to be assigned to input variables.*/
+            uint64_t _expected_output_wires = 0x00; /**<Output wires expected to be assigned to output variables.*/
+            std::unordered_map<std::string, uint64_t> _gates_counters; /**<Mapping control variable to count all the gates.*/
 
             // Circuit buffer - Memory management
-            uint64_t _buffer_size = 0x00;
-            uint64_t _buffer_max_size = std::numeric_limits<uint64_t>::max();
-            std::vector<std::string> _buffer;
+            uint64_t _buffer_size = 0x00; /**<Control variable to control the current size of the buffer.*/
+            uint64_t _buffer_max_size = std::numeric_limits<uint64_t>::max(); /**<Maximum size of the buffer.*/
+            std::vector<std::string> _buffer; /**<Buffer to write the circuit in.*/
 
             // Zero and One wires
-            Wire _zero_wire; // Wire that is always zero in the circuit
-            Wire _one_wire; // Wire that is always one in the circuit
+            Wire _zero_wire; /**<Wire that is always zero in the circuit.*/
+            Wire _one_wire; /**<Wire that is always one in the circuit.*/
 
+        // Internal Core Methods
         private:
+            /**
+             * @brief Creates the directory on which the circuit file will be generated.
+             * 
+             * -----
+             * 
+             * By default, the circuits location is directed to a "circuits" directory in the same directory on which the executable is called.
+             * It will not create the directory if the specified string is empty.
+            **/
             void _create_save_directory();
 
-            void _assert_add_input(uint64_t size);
-
+            /**
+             * @brief Flushes the buffer contents into a file.
+             * 
+             * -----
+             * 
+             * This function iterates through all the strings that the buffer contains and writes them into the input file.
+             * The buffer is then emptied and the buffer size control variable restarted to 0.
+             * 
+             * @param file File on which the buffer contents will be written.
+            **/
             void _flush_buffer(std::ofstream& file);
+
+            /**
+             * @brief Writes a gate line of the circuit.
+             * 
+             * -----
+             * 
+             * This function performs multiple steps:
+             * 1. Adds the line into the circuit buffer;
+             * 2. Checks if the buffer should be flushed. Flushes if so;
+             * 3. Updates the counters.
+             * 
+             * @param line Gate line.
+             * @param gate Gate name.
+            **/
             void _write_gate(const std::string& line, const std::string& gate);
-            void _write_1_1_gate(const uint64_t input, const uint64_t output, const std::string &gate);
-            void _write_2_1_gate(const uint64_t input1, const uint64_t input2, const uint64_t output, const std::string &gate);
 
-        protected:
-            CircuitGenerator() = delete;
-            CircuitGenerator(const std::string &circuit_name);
-            CircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory);
+            /**
+             * @brief Writes a logic gate that has 1 input wire and 1 output wire.
+             * 
+             * -----
+             * 
+             * This function only constructs the gate (1:1) line that will be written into the circuit file. This line is then given to the _write_gate function.
+             * 
+             * @param in_a Input wire.
+             * @param output Output wire.
+             * @param gate Gate name.
+            **/
+            void _write_1_1_gate(const uint64_t in_a, const uint64_t output, const std::string &gate);
 
-            ~CircuitGenerator();
+            /**
+             * @brief Writes a logic gate that has 2 input wires and 1 output wire.
+             * 
+             * -----
+             * 
+             * This function only constructs the gate (2:1) line that will be written into the circuit file. This line is then given to the _write_gate function.
+             * 
+             * @param in_a Input wire A.
+             * @param in_b Input wire B.
+             * @param output Output wire.
+             * @param gate Gate name.
+            **/
+            void _write_2_1_gate(const uint64_t in_a, const uint64_t in_b, const uint64_t output, const std::string &gate);
 
-            virtual void _write_header(std::ofstream& file);
-            virtual void _write_circuit(std::ofstream& file);
-
-        public:
-            // Memory management
-            void limit_buffer(uint64_t size);
-
-            // Parties
-            void add_input_party(uint64_t size);
-            void add_output_party(uint64_t size);
-
-            // Start & stop
-            void start();
-            void stop();
-
-            // Complements - Overrides the given variable
-            void twos_complement(SignedVar& variable);
-            void twos_complement(UnsignedVar& variable);
-
-            // Complements - Without overriding the given variable
-            void twos_complement(const SignedVar& variable, SignedVar& output);
-            void twos_complement(const UnsignedVar& variable, UnsignedVar& output);
-
-
-
-
-
-
-
-
-
+        // Assertions | Errors | Exceptions
         private:
             /**
              * @brief Checks if a variable has a specific size.
@@ -133,8 +194,113 @@ namespace gabe {
             **/
             void _assert_equal_size(const Variable& variable, uint64_t size);
 
+            /**
+             * @brief Checks if the input variable can be added as input.
+             * 
+             * -----
+             * 
+             * This check raises a runtime expection if the variable size does exceed the total of available input wires.
+             * 
+             * @param size Number of wires to evaluate.
+            **/
+            void _assert_add_input(uint64_t size);
+        
+        // Constructors | Destructor
+        protected:
+            /** @brief Default construction of a new Circuit Generator object is deleted. **/
+            CircuitGenerator() = delete;
+
+            /**
+             * @brief Construct a new Circuit Generator object for a specified circuit name.
+             * 
+             * -----
+             * 
+             * In the end, the generated circuit file will have the name of the inserted circuit name. It will assume the default location of the circuit file to be at a "circuit" directory that is present in the location that called the executable.
+             * 
+             * @param circuit_name Name of the circuit.
+            **/
+            CircuitGenerator(const std::string &circuit_name);
+
+            /**
+             * @brief Construct a new Circuit Generator object for a specified circuit name and location.
+             * 
+             * -----
+             * 
+             * In the end, the generated circuit file will have the name of the inserted circuit name and located into the inserted location.
+             * 
+             * @param circuit_name Name of the circuit.
+             * @param circuits_directory Location of the circuit.
+            **/
+            CircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory);
+
+            /** @brief Destroy the Circuit Generator object. **/
+            ~CircuitGenerator();
+
+        // Abstract Methods
+        protected:
+            /**
+             * @brief Writes the header section of the circuit into a file.
+             * 
+             * -----
+             * 
+             * By default, this function is empty. It is meant to be overritten by any circuit generator class that extends from this one.
+             * 
+             * @param file File to write.
+            **/
+            virtual void _write_header(std::ofstream& file);
+
+            /**
+             * @brief Writes the circuit section of the circuit into a file.
+             * 
+             * -----
+             * 
+             * By default, this function is performs the write of the circuit section exactly how it should be. However, it is placed as abstract in case any child class needs to change its behavior.
+             * 
+             * @param file File to write.
+            **/
+            virtual void _write_circuit(std::ofstream& file);
+
+        // Generator Options
+        public:
+            /**
+             * @brief Sets a buffer size limit to the internal buffer.
+             * 
+             * -----
+             * 
+             * By default, the circuit generator caches all the generated data until it is written into a circuit file, which is the last step. However, this can be a problem in several machines that are more RAM limited. In those cases, this function can be used to set a buffer limit to write into the circuit file once the buffer reaches a specified size. The size is in bytes.
+             * 
+             * @param size Size of the buffer.
+            **/
+            void limit_buffer(uint64_t size);
+
         // Circuit Setup
         public:
+            /**
+             * @brief Adds an input party to the circuit.
+             * 
+             * -----
+             * 
+             * This function adds a new input party and registers its size into a vector of input parties. The inserted party size will increase the number of available input variables that can be used to add input variables. This size is also important in the writing phase.
+             * 
+             * @note This function should only be used before starting the circuit writing (after using the start() method). Otherwise, this function will not behave as expected.
+             * 
+             * @param size Size of the input party.
+            **/
+            void add_input_party(uint64_t size);
+
+            /**
+             * @brief Adds an output party to the circuit.
+             * 
+             * -----
+             * 
+             * This function adds a new output party and registers its size into a vector of output parties.
+             * 
+             * @note This function should only be used before starting the circuit writing (after using the start() method). Otherwise, this function will not behave as expected.
+             * 
+             * @param size Size of the output party.
+            **/
+            void add_output_party(uint64_t size);
+
             /**
              * @brief Adds a wire as a circuit input.
              * 
@@ -164,6 +330,30 @@ namespace gabe {
              * @param variable Input variable in the circuit.
             **/
             void add_input(Variable& variable);
+
+            /**
+             * @brief Starts the writing/construction of the circuit.
+             * 
+             * -----
+             * 
+             * This function makes sure that all the inputs of the circuit were correctly setup, i.e that there are inputs and that all the defined input wires were all assigned to input variables.
+             * If something is wrong with the initial setup, this function raises a runtime exception.
+             * 
+             * Once the validation checks pass, this function ends up by creating the zero and one wires, wich are constant wires that assume the value 0 and 1 in the circuit, respectively.
+             * 
+             * @note The add_input and add_input_party methods should not be used once this function is called.
+            **/
+            void start();
+
+            /**
+             * @brief Stops the writing/construction of the circuit.
+             * 
+             * -----
+             * 
+             * Once called, this function terminates the circuit construction and completes the writing into the circuit file, including defining correctly its header part, which is dependent of the total gates in the circuit.
+             * To conclude, it also prints into the console the total amount of gates and wires of the created circuit.
+            **/
+            void stop();
 
         // Variables manipulation
         public:

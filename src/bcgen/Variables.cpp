@@ -1,7 +1,5 @@
 #include <bcgen/CircuitGenerator.hpp>
 
-gabe::bcgen::Variable::Variable() {}
-
 gabe::bcgen::Variable::Variable(uint64_t number_wires) {
     _wires.resize(number_wires);
 }
@@ -17,19 +15,3 @@ const gabe::bcgen::Wire& gabe::bcgen::Variable::operator[](uint64_t index) const
 uint64_t gabe::bcgen::Variable::size() const {
     return _wires.size();
 }
-
-// ****
-// SignedVar class
-// ****
-
-gabe::bcgen::SignedVar::SignedVar() {}
-
-gabe::bcgen::SignedVar::SignedVar(uint64_t number_wires) : Variable(number_wires) {}
-
-// ****
-// UnsignedVar class
-// ****
-
-gabe::bcgen::UnsignedVar::UnsignedVar() {}
-
-gabe::bcgen::UnsignedVar::UnsignedVar(uint64_t number_wires) : Variable(number_wires) {}
