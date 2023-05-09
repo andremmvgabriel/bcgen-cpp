@@ -161,119 +161,6 @@ void gabe::bcgen::CircuitGenerator::stop() {
     printf("> Total wires: %lu\n", _counter_wires);
 }
 
-void gabe::bcgen::CircuitGenerator::shift_right(SignedVar &variable, uint64_t amount) {
-    // Shifting
-    for (uint64_t i = variable.size(); i > amount; i--) {
-        variable[i-1 - amount] = variable[i-1];
-    }
-    
-    // Assign 0 to the new wires
-    for (uint64_t i = 0; i < amount && i < variable.size(); i++) {
-        variable[variable.size() - 1 - i] = _zero_wire;
-    }
-}
-
-void gabe::bcgen::CircuitGenerator::shift_right(UnsignedVar &variable, uint64_t amount) {
-    // Shifting
-    for (uint64_t i = variable.size(); i > amount; i--) {
-        variable[i-1 - amount] = variable[i-1];
-    }
-    
-    // Assign 0 to the new wires
-    for (uint64_t i = 0; i < amount && i < variable.size(); i++) {
-        variable[variable.size() - 1 - i] = _zero_wire;
-    }
-}
-
-void gabe::bcgen::CircuitGenerator::shift_right(const SignedVar& variable, uint64_t amount, SignedVar& output) {
-    output = variable;
-    shift_right(output, amount);
-}
-
-void gabe::bcgen::CircuitGenerator::shift_right(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output) {
-    output = variable;
-    shift_right(output, amount);
-}
-
-void gabe::bcgen::CircuitGenerator::rotate_left(SignedVar &variable, uint64_t amount) {
-    SignedVar temp = variable;
-
-    for (uint64_t i = 0; i < variable.size(); i++) {
-        uint64_t j = (i + amount) % variable.size();
-        variable[i] = temp[j];
-    }
-}
-
-void gabe::bcgen::CircuitGenerator::rotate_left(UnsignedVar &variable, uint64_t amount) {
-    UnsignedVar temp = variable;
-
-    for (uint64_t i = 0; i < variable.size(); i++) {
-        uint64_t j = (i + amount) % variable.size();
-        variable[i] = temp[j];
-    }
-}
-
-void gabe::bcgen::CircuitGenerator::rotate_right(SignedVar &variable, uint64_t amount) {
-    SignedVar temp = variable;
-
-    for (uint64_t i = 0; i < variable.size(); i++) {
-        uint64_t j = (i + amount) % variable.size();
-        variable[j] = temp[i];
-    }
-}
-
-void gabe::bcgen::CircuitGenerator::rotate_right(UnsignedVar &variable, uint64_t amount) {
-    UnsignedVar temp = variable;
-
-    for (uint64_t i = 0; i < variable.size(); i++) {
-        uint64_t j = (i + amount) % variable.size();
-        variable[j] = temp[i];
-    }
-}
-
-void gabe::bcgen::CircuitGenerator::rotate_left(const SignedVar& variable, uint64_t amount, SignedVar& output) {
-    output = variable;
-    rotate_left(output, amount);
-}
-
-void gabe::bcgen::CircuitGenerator::rotate_left(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output) {
-    output = variable;
-    rotate_left(output, amount);
-}
-
-void gabe::bcgen::CircuitGenerator::rotate_right(const SignedVar& variable, uint64_t amount, SignedVar& output) {
-    output = variable;
-    rotate_right(output, amount);
-}
-
-void gabe::bcgen::CircuitGenerator::rotate_right(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output) {
-    output = variable;
-    rotate_right(output, amount);
-}
-
-void gabe::bcgen::CircuitGenerator::flip(SignedVar& variable) {
-    SignedVar temp = variable;
-
-    for (uint64_t i = 0; i < variable.size(); i++)
-        variable[i] = temp[variable.size() - 1 - i];
-}
-
-void gabe::bcgen::CircuitGenerator::flip(UnsignedVar& variable) {
-    UnsignedVar temp = variable;
-
-    for (uint64_t i = 0; i < variable.size(); i++)
-        variable[i] = temp[variable.size() - 1 - i];
-}
-
-void gabe::bcgen::CircuitGenerator::flip(const SignedVar& variable, SignedVar& output) {
-    output = variable;
-    flip(output);
-}
-
-void gabe::bcgen::CircuitGenerator::flip(const UnsignedVar& variable, UnsignedVar& output) {
-    output = variable;
-    flip(output);
-}
 
 void gabe::bcgen::CircuitGenerator::twos_complement(SignedVar& variable) {
     // TODO - Complete this function...
@@ -300,6 +187,17 @@ void gabe::bcgen::CircuitGenerator::twos_complement(const UnsignedVar& variable,
     output = variable;
     twos_complement(output);
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -375,8 +273,117 @@ void gabe::bcgen::CircuitGenerator::shift_left(Variable &variable, uint64_t amou
 }
 
 void gabe::bcgen::CircuitGenerator::shift_left(const Variable& variable, uint64_t amount, Variable& output) {
+    // Makes a copy of the input variable
     output = variable;
+
+    // Shift the output variable
     shift_left(output, amount);
+}
+
+void gabe::bcgen::CircuitGenerator::shift_right(Variable &variable, uint64_t amount) {
+    // Shifting
+    for (uint64_t i = variable.size(); i > amount; i--) {
+        variable[i-1 - amount] = variable[i-1];
+    }
+    
+    // Assign 0 to the new wires
+    for (uint64_t i = 0; i < amount && i < variable.size(); i++) {
+        variable[variable.size() - 1 - i] = _zero_wire;
+    }
+}
+
+void gabe::bcgen::CircuitGenerator::shift_right(const Variable& variable, uint64_t amount, Variable& output) {
+    // Makes a copy of the input variable
+    output = variable;
+
+    // Shift the output variable
+    shift_right(output, amount);
+}
+
+void gabe::bcgen::CircuitGenerator::rotate_left(Variable &variable, uint64_t amount) {
+    // Creates a copy of the input variable
+    Variable temp = variable;
+
+    // Places the bits in the new positions due to the rotation
+    for (uint64_t i = 0; i < variable.size(); i++) {
+        // New position
+        uint64_t j = (i + amount) % variable.size();
+
+        // Bit replacement
+        variable[i] = temp[j];
+    }
+}
+
+void gabe::bcgen::CircuitGenerator::rotate_left(const Variable& variable, uint64_t amount, Variable& output) {
+    // Makes a copy of the input variable
+    output = variable;
+
+    // Rotate the output variable
+    rotate_left(output, amount);
+}
+
+void gabe::bcgen::CircuitGenerator::rotate_right(Variable &variable, uint64_t amount) {
+    // Creates a copy of the input variable
+    Variable temp = variable;
+
+    // Places the bits in the new positions due to the rotation
+    for (uint64_t i = 0; i < variable.size(); i++) {
+        // New position
+        uint64_t j = (i + amount) % variable.size();
+
+        // Bit replacement
+        variable[j] = temp[i];
+    }
+}
+
+void gabe::bcgen::CircuitGenerator::rotate_right(const Variable& variable, uint64_t amount, Variable& output) {
+    // Makes a copy of the input variable
+    output = variable;
+
+    // Rotate the output variable
+    rotate_right(output, amount);
+}
+
+void gabe::bcgen::CircuitGenerator::flip(Variable& variable) {
+    // Creates a copy of the input variable
+    Variable temp = variable;
+
+    // Places the bits in the new positions due to the flipping
+    for (uint64_t i = 0; i < variable.size(); i++) {
+        // New position
+        uint64_t j = variable.size() - 1 - i;
+
+        // Bit replacement
+        variable[i] = temp[j];
+    }
+}
+
+void gabe::bcgen::CircuitGenerator::flip(const Variable& variable, Variable& output) {
+    // Makes a copy of the input variable
+    output = variable;
+
+    // Flip the output variable
+    flip(output);
+}
+
+void gabe::bcgen::CircuitGenerator::twos_complement(Variable& variable) {
+    // Variable creations
+    Variable one(variable.size());
+
+    // Variable value initializations
+    assign_value(one, 1);
+
+    // Algorithm
+    INV(variable, variable);
+    sum(one, variable, variable);
+}
+
+void gabe::bcgen::CircuitGenerator::twos_complement(const Variable& variable, Variable& output) {
+    // Makes a copy of the input variable
+    output = variable;
+
+    // Performs the complement to the output variable
+    twos_complement(output);
 }
 
 void gabe::bcgen::CircuitGenerator::XOR(const Wire in_a, const Wire in_b, Wire& out) {

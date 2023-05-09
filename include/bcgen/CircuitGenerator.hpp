@@ -100,43 +100,9 @@ namespace gabe {
             void add_input_party(uint64_t size);
             void add_output_party(uint64_t size);
 
-            // Inputs
-
-            // Outputs
-
             // Start & stop
             void start();
             void stop();
-
-            // Values assignment
-
-            // Shifters - Overrides the given variable
-            void shift_right(SignedVar& variable, uint64_t amount);
-            void shift_right(UnsignedVar& variable, uint64_t amount);
-
-            // Shifters - Without overriding the given variable
-            void shift_right(const SignedVar& variable, uint64_t amount, SignedVar& output);
-            void shift_right(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output);
-
-            // Rotators - Overrides the given variable
-            void rotate_left(SignedVar& variable, uint64_t amount);
-            void rotate_left(UnsignedVar& variable, uint64_t amount);
-            void rotate_right(SignedVar& variable, uint64_t amount);
-            void rotate_right(UnsignedVar& variable, uint64_t amount);
-
-            // Rotators - Without overriding the given variable
-            void rotate_left(const SignedVar& variable, uint64_t amount, SignedVar& output);
-            void rotate_left(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output);
-            void rotate_right(const SignedVar& variable, uint64_t amount, SignedVar& output);
-            void rotate_right(const UnsignedVar& variable, uint64_t amount, UnsignedVar& output);
-
-            // Flipers - Overrides the given variable
-            void flip(SignedVar& variable);
-            void flip(UnsignedVar& variable);
-            
-            // Flipers - Without overriding the given variable
-            void flip(const SignedVar& variable, SignedVar& output);
-            void flip(const UnsignedVar& variable, UnsignedVar& output);
 
             // Complements - Overrides the given variable
             void twos_complement(SignedVar& variable);
@@ -199,6 +165,8 @@ namespace gabe {
             **/
             void add_input(Variable& variable);
 
+        // Variables manipulation
+        public:
             /**
              * @brief Assigns a value to a inputed wire.
              * 
@@ -239,7 +207,7 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function shifts the variable wires towards the left. This means that each wires is increasing its significance by X, being X the amount of bits to shift.
+             * This function shifts the variable wires towards the left. This means that each wire is increasing its significance by X, being X the amount of bits to shift.
              * The next wires that appear on the right are automatically assigned to have a wire value of 0 (zero_wire of the circuit).
              * 
              * The following example shows the expected behavior of the function:
@@ -262,7 +230,7 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function shifts the variable wires towards the left. This means that each wires is increasing its significance by X, being X the amount of bits to shift.
+             * This function shifts the variable wires towards the left. This means that each wire is increasing its significance by X, being X the amount of bits to shift.
              * The next wires that appear on the right are automatically assigned to have a wire value of 0 (zero_wire of the circuit).
              * 
              * The following example shows the expected behavior of the function:
@@ -277,8 +245,192 @@ namespace gabe {
              * 
              * @param variable Input & Output variable.
              * @param amount Amount of bits to shift.
+             * @param output Shifted output.
             **/
             void shift_left(const Variable& variable, uint64_t amount, Variable& output);
+
+            /**
+             * @brief Shift variable wires to the right. Output overrides the input variable.
+             * 
+             * -----
+             * 
+             * This function shifts the variable wires towards the right. This means that each wire is decreasing its significance by X, being X the amount of bits to shift.
+             * The next wires that appear on the left are automatically assigned to have a wire value of 0 (zero_wire of the circuit).
+             * 
+             * The following example shows the expected behavior of the function:
+             * 
+             * ```
+             * Input variable value: 55
+             * Shifting amount: 3
+             * 
+             *          Shifting
+             * 00110111 -------> 00000110
+             * ```
+             * 
+             * @param variable Input & Output variable.
+             * @param amount Amount of bits to shift.
+            **/
+            void shift_right(Variable& variable, uint64_t amount);
+
+            /**
+             * @brief Shift variable wires to the right. Output does not override initial variable.
+             * 
+             * -----
+             * 
+             * This function shifts the variable wires towards the right. This means that each wire is decreasing its significance by X, being X the amount of bits to shift.
+             * The next wires that appear on the left are automatically assigned to have a wire value of 0 (zero_wire of the circuit).
+             * 
+             * The following example shows the expected behavior of the function:
+             * 
+             * ```
+             * Input variable value: 55
+             * Shifting amount: 3
+             * 
+             *          Shifting
+             * 00110111 -------> 00000110
+             * ```
+             * 
+             * @param variable Input & Output variable.
+             * @param amount Amount of bits to shift.
+             * @param output Shifted output.
+            **/
+            void shift_right(const Variable& variable, uint64_t amount, Variable& output);
+
+            /**
+             * @brief Rotates variable wires to the left. Output overrides the input variable.
+             * 
+             * -----
+             * 
+             * This function rotates the variable wires towards the left. This is similar to the shift left method except that the most left wires will be placed back on the right of the variable. This means that, for each rotated bit, every wire is increasing its significance except the most significant one, which is rotated back to the right, being the least significat wire now.
+             * 
+             * The following example shows the expected behavior of the function:
+             * 
+             * ```
+             * Input variable value: 205
+             * Rotation amount: 3
+             * 
+             *          Shifting
+             * 11001101 -------> 01101110
+             * ```
+             * 
+             * @param variable Input & Output variable.
+             * @param amount Amount of bits to rotate.
+            **/
+            void rotate_left(Variable& variable, uint64_t amount);
+
+            /**
+             * @brief Rotates variable wires to the left. Output does not override initial variable.
+             * 
+             * -----
+             * 
+             * This function rotates the variable wires towards the left. This is similar to the shift left method except that the most left wires will be placed back on the right of the variable. This means that, for each rotated bit, every wire is increasing its significance except the most significant one, which is rotated back to the right, being the least significat wire now.
+             * 
+             * The following example shows the expected behavior of the function:
+             * 
+             * ```
+             * Input variable value: 205
+             * Rotation amount: 3
+             * 
+             *          Shifting
+             * 11001101 -------> 01101110
+             * ```
+             * 
+             * @param variable Input & Output variable.
+             * @param amount Amount of bits to rotate.
+             * @param output Rotated output.
+            **/
+            void rotate_left(const Variable& variable, uint64_t amount, Variable& output);
+
+            /**
+             * @brief Rotates variable wires to the right. Output overrides the input variable.
+             * 
+             * -----
+             * 
+             * This function rotates the variable wires towards the right. This is similar to the shift right method except that the most right wires will be placed back on the left of the variable. This means that, for each rotated bit, every wire is decreasing its significance except the least significant one, which is rotated back to the left, being the most significat wire now.
+             * 
+             * The following example shows the expected behavior of the function:
+             * 
+             * ```
+             * Input variable value: 205
+             * Rotation amount: 3
+             * 
+             *          Shifting
+             * 11001101 -------> 10111001
+             * ```
+             * 
+             * @param variable Input & Output variable.
+             * @param amount Amount of bits to rotate.
+            **/
+            void rotate_right(Variable& variable, uint64_t amount);
+
+            /**
+             * @brief Rotates variable wires to the right. Output does not override initial variable.
+             * 
+             * -----
+             * 
+             * This function rotates the variable wires towards the right. This is similar to the shift right method except that the most right wires will be placed back on the left of the variable. This means that, for each rotated bit, every wire is decreasing its significance except the least significant one, which is rotated back to the left, being the most significat wire now.
+             * 
+             * The following example shows the expected behavior of the function:
+             * 
+             * ```
+             * Input variable value: 205
+             * Rotation amount: 3
+             * 
+             *          Shifting
+             * 11001101 -------> 10111001
+             * ```
+             * 
+             * @param variable Input & Output variable.
+             * @param amount Amount of bits to rotate.
+             * @param output Rotated output.
+            **/
+            void rotate_right(const Variable& variable, uint64_t amount, Variable& output);
+
+            /**
+             * @brief Flips variable wires. Output overrides the input variable.
+             * 
+             * -----
+             * 
+             * This function flips the variable wires. The flipping behavior can be compared to a mirror, i.e., the most left wires will be placed as the most right wires and vice-versa.
+             * 
+             * The following example shows the expected behavior of the function:
+             * 
+             * ```
+             * Input variable value: 13
+             * Rotation amount: 3
+             * 
+             *          Shifting
+             * 00001101 -------> 10110000
+             * ```
+             * 
+             * @param variable Input & Output variable.
+            **/
+            void flip(Variable& variable);
+
+            /**
+             * @brief Flips variable wires. Output does not override initial variable.
+             * 
+             * -----
+             * 
+             * This function flips the variable wires. The flipping behavior can be compared to a mirror, i.e., the most left wires will be placed as the most right wires and vice-versa.
+             * 
+             * The following example shows the expected behavior of the function:
+             * 
+             * ```
+             * Input variable value: 13
+             * Rotation amount: 3
+             * 
+             *          Shifting
+             * 00001101 -------> 10110000
+             * ```
+             * 
+             * @param variable Input & Output variable.
+             * @param output Flipped output.
+            **/
+            void flip(const Variable& variable, Variable& output);
+
+            void twos_complement(Variable& variable);
+            void twos_complement(const Variable& variable, Variable& output);
 
         // Basic operations
         public:
