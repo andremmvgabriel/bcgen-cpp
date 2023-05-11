@@ -84,6 +84,8 @@ namespace gabe {
          * 
          * This class has the core functionality of a circuit generator. Every class that extends from this will inherite this core methods. The child classes can also overwrite two methods that should be changed for specialized purposes.
          * 
+         * @note Currently, this class is limited to integer operations.
+         * 
          * @note This class is abstract and designed to not be able to be instantiated. It is meant to be extended from, and its child dedicated to a circuit format.
         **/
         class CircuitGenerator
@@ -619,7 +621,47 @@ namespace gabe {
             **/
             void flip(const Variable& variable, Variable& output);
 
+            /**
+             * @brief Performs the 2's complement to a variable. Output overrides the input variable.
+             * 
+             * -----
+             * 
+             * This function performs the 2's complement to the input variable. This operation is used to changed the sign of the variable, i.e, change -X to X and vice-versa. To perform this operation, all the wires of the variable have to be negated (1's complement), and then add the varaible 1 to that result.
+             * 
+             * The following example shows the expected behavior of the function:
+             * 
+             * ```
+             * Input variable value: 13
+             * Output variable value: -13
+             * 
+             *          2's comp
+             * 00001101 -------> 11110011
+             * ```
+             * 
+             * @param variable Input & Output variable.
+            **/
             void twos_complement(Variable& variable);
+
+            /**
+             * @brief Performs the 2's complement to a variable. Output does not override initial variable.
+             * 
+             * -----
+             * 
+             * This function performs the 2's complement to the input variable. This operation is used to changed the sign of the variable, i.e, change -X to X and vice-versa. To perform this operation, all the wires of the variable have to be negated (1's complement), and then add the varaible 1 to that result.
+             * 
+             * The following example shows the expected behavior of the function:
+             * 
+             * ```
+             * Input variable value: 13
+             * Output variable value: -13
+             * 
+             *          2's comp
+             * 00001101 -------> 11110011
+             * ```
+             * 
+             * @param variable Input & Output variable.
+             * @param output 2's complement output.
+            **/
             void twos_complement(const Variable& variable, Variable& output);
 
         // Basic operations
@@ -1215,6 +1257,92 @@ namespace gabe {
              * @param out_r Output variable \f$R\f$ (Remainder).
             **/
             void divide_u_remainder(const Variable& in_a, const Variable& in_b, Variable& out_r);
+
+            /**
+             * @brief Binary division between two signed variables, resulting in a two new signed variables (quotient and remainder).
+             * 
+             * -----
+             * 
+             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains).
+             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function is directed to the division between two signed variables, thus the "s" in the function name.
+             * A signed binary division operation can be represented by the cycle of successive compare, shift, and subtract operations.
+             * 
+             * A signed binary division is similar to the unsigned binary division, with the addition of a "pre-processing" step to the inputs, where these variables are manipulated acoordingly to their signs, and a "post-processing" step to the quotient output, where the input signs manipulate it.
+             * 
+             * For better understanding of the variable manipulation, take a look at the following table:
+             * 
+             * | \f$A\f$ sign | \f$B\f$ sign | Dividend    | Divisor     | Quotient    |
+             * | :----------: | :----------: | :---------: | :---------: | :---------: |
+             * | 0            | 0            | \f$A\f$     | \f$B\f$     | \f$Q\f$     |
+             * | 0            | 1            | \f$A\f$     | 2's \f$B\f$ | 2's \f$Q\f$ |
+             * | 1            | 0            | 2's \f$A\f$ | \f$B\f$     | 2's \f$Q\f$ |
+             * | 1            | 1            | 2's \f$A\f$ | 2's \f$B\f$ | \f$Q\f$     |
+             * 
+             * With the dividend and divisor variables defined, they can be used in an unsigned binary division, since they were manipulated to setup the conditions to allow the unsigned operation.
+             * Since the output comes from the unsigned binary operation, it also has to be manipulated in case its result is suppose to be negative. This only happens when the operation is between two signed variables with different signs.
+             * 
+             * @param in_a Input variable \f$A\f$.
+             * @param in_b Input variable \f$B\f$.
+             * @param out_q Output variable \f$Q\f$ (Quotient).
+             * @param out_r Output variable \f$R\f$ (Remainder).
+            **/
+            void divide_s(const Variable& in_a, const Variable& in_b, Variable& out_q, Variable& out_r);
+
+            /**
+             * @brief Binary division between two signed variables, resulting in a new signed variable (quotient).
+             * 
+             * -----
+             * 
+             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains).
+             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function is directed to the division between two signed variables, thus the "s" in the function name.
+             * A signed binary division operation can be represented by the cycle of successive compare, shift, and subtract operations.
+             * 
+             * A signed binary division is similar to the unsigned binary division, with the addition of a "pre-processing" step to the inputs, where these variables are manipulated acoordingly to their signs, and a "post-processing" step to the quotient output, where the input signs manipulate it.
+             * 
+             * For better understanding of the variable manipulation, take a look at the following table:
+             * 
+             * | \f$A\f$ sign | \f$B\f$ sign | Dividend    | Divisor     | Quotient    |
+             * | :----------: | :----------: | :---------: | :---------: | :---------: |
+             * | 0            | 0            | \f$A\f$     | \f$B\f$     | \f$Q\f$     |
+             * | 0            | 1            | \f$A\f$     | 2's \f$B\f$ | 2's \f$Q\f$ |
+             * | 1            | 0            | 2's \f$A\f$ | \f$B\f$     | 2's \f$Q\f$ |
+             * | 1            | 1            | 2's \f$A\f$ | 2's \f$B\f$ | \f$Q\f$     |
+             * 
+             * With the dividend and divisor variables defined, they can be used in an unsigned binary division, since they were manipulated to setup the conditions to allow the unsigned operation.
+             * Since the output comes from the unsigned binary operation, it also has to be manipulated in case its result is suppose to be negative. This only happens when the operation is between two signed variables with different signs.
+             * 
+             * @param in_a Input variable \f$A\f$.
+             * @param in_b Input variable \f$B\f$.
+             * @param out_q Output variable \f$Q\f$ (Quotient).
+            **/
+            void divide_s_quotient(const Variable& in_a, const Variable& in_b, Variable& out_q);
+
+            /**
+             * @brief Binary division between two signed variables, resulting in a new signed variable (remainder).
+             * 
+             * -----
+             * 
+             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains).
+             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function is directed to the division between two signed variables, thus the "s" in the function name.
+             * A signed binary division operation can be represented by the cycle of successive compare, shift, and subtract operations.
+             * 
+             * For better understanding of the variable manipulation, take a look at the following table:
+             * 
+             * | \f$A\f$ sign | \f$B\f$ sign | Dividend    | Divisor     | Quotient    |
+             * | :----------: | :----------: | :---------: | :---------: | :---------: |
+             * | 0            | 0            | \f$A\f$     | \f$B\f$     | \f$Q\f$     |
+             * | 0            | 1            | \f$A\f$     | 2's \f$B\f$ | 2's \f$Q\f$ |
+             * | 1            | 0            | 2's \f$A\f$ | \f$B\f$     | 2's \f$Q\f$ |
+             * | 1            | 1            | 2's \f$A\f$ | 2's \f$B\f$ | \f$Q\f$     |
+             * 
+             * With the dividend and divisor variables defined, they can be used in an unsigned binary division, since they were manipulated to setup the conditions to allow the unsigned operation.
+             * Since this function only targets to get the remainder result, the very last step of manipulating the quotient variable is not needed.
+             * 
+             * @param in_a Input variable \f$A\f$.
+             * @param in_b Input variable \f$B\f$.
+             * @param out_r Output variable \f$R\f$ (Remainder).
+            **/
+            void divide_s_remainder(const Variable& in_a, const Variable& in_b, Variable& out_r);
         
         // Conditional operations
         public:

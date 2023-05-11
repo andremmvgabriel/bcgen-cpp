@@ -183,7 +183,7 @@ void gabe::bcgen::CircuitGenerator::stop() {
     circuit.close();
 
     // Final output
-    printf("\nSuccessfully created circuit file.\n");
+    printf("\nSuccessfully created circuit %s.\n", _circuit_name.c_str());
     printf("> Total gates: %lu\n", _counter_gates);
     printf("-> OR: %lu\n", _gates_counters[_gates_map["or"]]);
     printf("-> XOR: %lu\n", _gates_counters[_gates_map["xor"]]);
@@ -710,6 +710,133 @@ void gabe::bcgen::CircuitGenerator::divide_u_remainder(const Variable& in_a, con
 
     // Performs the division
     divide_u(in_a, in_b, quotient, out_r);
+#endif
+}
+
+void gabe::bcgen::CircuitGenerator::divide_s(const Variable& in_a, const Variable& in_b, Variable& out_q, Variable& out_r) {
+#if BCGEN_OPTIMIZE
+    // TODO: Think in the function optimization...
+    // > Variables should have arbitrary size
+    // > Perform as many bit operations as the length of the input variables
+#else
+    // Safety checks
+    _assert_equal_size(in_a, out_q.size());
+    _assert_equal_size(in_b, out_q.size());
+    _assert_equal_size(out_r, out_q.size());
+
+    // Input variable signs
+    // > This will define what will be the dividend and divisor variable of the division.
+    // > If A sign is positive, in_a will be used, otherwise its two's complement
+    // > If B sign is positive, in_b will be used, otherwise its two's complement
+    Wire in_a_sign = in_a[in_a.size()-1];
+    Wire in_b_sign = in_b[in_b.size()-1];
+
+    // Inputs two's complements
+    Variable in_a_complement(in_a.size());
+    Variable in_b_complement(in_b.size());
+    twos_complement(in_a, in_a_complement);
+    twos_complement(in_b, in_b_complement);
+
+    // Define the dividend and divisor variables that will be used
+    Variable dividend(in_a.size());
+    Variable divisor(in_b.size());
+    multiplexer(in_a, in_a_complement, in_a_sign, dividend);
+    multiplexer(in_b, in_b_complement, in_b_sign, divisor);
+
+    // Performs the unsigned division
+    divide_u(dividend, divisor, out_q, out_r);
+
+    // Quotient variable sign
+    // > This will control if the quotient result has to be manipulated with the two's complement
+    Wire out_sign;
+    XOR(in_a_sign, in_b_sign, out_sign);
+
+    // Quotient two's complement
+    Variable out_q_complement(out_q.size());
+    twos_complement(out_q, out_q_complement);
+    
+    // Define the output quotient
+    multiplexer(out_q, out_q_complement, out_sign, out_q);
+#endif
+}
+
+void gabe::bcgen::CircuitGenerator::divide_s_quotient(const Variable& in_a, const Variable& in_b, Variable& out_q) {
+#if BCGEN_OPTIMIZE
+    // TODO: Think in the function optimization...
+    // > Variables should have arbitrary size
+    // > Perform as many bit operations as the length of the input variables
+#else
+    // Safety checks
+    _assert_equal_size(in_a, out_q.size());
+    _assert_equal_size(in_b, out_q.size());
+
+    // Input variable signs
+    // > This will define what will be the dividend and divisor variable of the division.
+    // > If A sign is positive, in_a will be used, otherwise its two's complement
+    // > If B sign is positive, in_b will be used, otherwise its two's complement
+    Wire in_a_sign = in_a[in_a.size()-1];
+    Wire in_b_sign = in_b[in_b.size()-1];
+
+    // Inputs two's complements
+    Variable in_a_complement(in_a.size());
+    Variable in_b_complement(in_b.size());
+    twos_complement(in_a, in_a_complement);
+    twos_complement(in_b, in_b_complement);
+
+    // Define the dividend and divisor variables that will be used
+    Variable dividend(in_a.size());
+    Variable divisor(in_b.size());
+    multiplexer(in_a, in_a_complement, in_a_sign, dividend);
+    multiplexer(in_b, in_b_complement, in_b_sign, divisor);
+
+    // Performs the unsigned division
+    divide_u_quotient(dividend, divisor, out_q);
+
+    // Quotient variable sign
+    // > This will control if the quotient result has to be manipulated with the two's complement
+    Wire out_sign;
+    XOR(in_a_sign, in_b_sign, out_sign);
+
+    // Quotient two's complement
+    Variable out_q_complement(out_q.size());
+    twos_complement(out_q, out_q_complement);
+    
+    // Define the output quotient
+    multiplexer(out_q, out_q_complement, out_sign, out_q);
+#endif
+}
+
+void gabe::bcgen::CircuitGenerator::divide_s_remainder(const Variable& in_a, const Variable& in_b, Variable& out_r) {
+#if BCGEN_OPTIMIZE
+    // TODO: Think in the function optimization...
+    // > Variables should have arbitrary size
+    // > Perform as many bit operations as the length of the input variables
+#else
+    // Safety checks
+    _assert_equal_size(in_a, out_r.size());
+    _assert_equal_size(in_b, out_r.size());
+
+    // Input variable signs
+    // > This will define what will be the dividend and divisor variable of the division.
+    // > If A sign is positive, in_a will be used, otherwise its two's complement
+    // > If B sign is positive, in_b will be used, otherwise its two's complement
+    Wire in_a_sign = in_a[in_a.size()-1];
+    Wire in_b_sign = in_b[in_b.size()-1];
+
+    // Inputs two's complements
+    Variable in_a_complement(in_a.size());
+    Variable in_b_complement(in_b.size());
+    twos_complement(in_a, in_a_complement);
+    twos_complement(in_b, in_b_complement);
+
+    // Define the dividend and divisor variables that will be used
+    Variable dividend(in_a.size());
+    Variable divisor(in_b.size());
+    multiplexer(in_a, in_a_complement, in_a_sign, dividend);
+    multiplexer(in_b, in_b_complement, in_b_sign, divisor);
+
+    // Performs the unsigned division
+    divide_u_remainder(dividend, divisor, out_r);
 #endif
 }
 
