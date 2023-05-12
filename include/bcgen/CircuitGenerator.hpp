@@ -1420,11 +1420,13 @@ namespace gabe {
             void equal(const Variable& in_a, const Variable& in_b, Variable& out);
 
             /**
-             * @brief Evaluates if variable A is greater than variable B.
+             * @brief Evaluates if unsigned variable A is greater than unsigned variable B.
              * 
              * -----
              * 
-             * The greater binary operation is represented by the following truth table:
+             * The circuit creation for a greater operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * 
+             * The greater binary operation for unsigned variables is represented by the following truth table:
              * 
              * | \f$A\f$ | \f$B\f$ | \f$>\f$ |
              * | :-----: | :-----: | :-----: |
@@ -1454,14 +1456,16 @@ namespace gabe {
              * @param in_b Input variable \f$B\f$.
              * @param out Output wire \f$Greater\f$.
             **/
-            void greater(const Variable& in_a, const Variable& in_b, Wire& out);
+            void greater_u(const Variable& in_a, const Variable& in_b, Wire& out);
 
             /**
-             * @brief Evaluates if variable A is greater than variable B.
+             * @brief Evaluates if unsigned variable A is greater than unsigned variable B.
              * 
              * -----
              * 
-             * The greater binary operation is represented by the following truth table:
+             * The circuit creation for a greater operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * 
+             * The greater binary operation for unsigned variables is represented by the following truth table:
              * 
              * | \f$A\f$ | \f$B\f$ | \f$>\f$ |
              * | :-----: | :-----: | :-----: |
@@ -1491,14 +1495,98 @@ namespace gabe {
              * @param in_b Input variable \f$B\f$.
              * @param out Output variable \f$Greater\f$.
             **/
-            void greater(const Variable& in_a, const Variable& in_b, Variable& out);
+            void greater_u(const Variable& in_a, const Variable& in_b, Variable& out);
 
             /**
-             * @brief Evaluates if variable A is smaller than variable B.
+             * @brief Evaluates if signed variable A is greater than signed variable B.
              * 
              * -----
              * 
-             * The smaller binary operation is represented by the following truth table:
+             * The circuit creation for a greater operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * 
+             * The greater binary operation for signed variables is represented by the following truth table:
+             * 
+             * | \f$A\f$ | \f$B\f$ | \f$>\f$ |
+             * | :-----: | :-----: | :-----: |
+             * | 0       | 0       | 0       |
+             * | 0       | 1       | 1       |
+             * | 1       | 0       | 0       |
+             * | 1       | 1       | 0       |
+             * 
+             * From the truth table, we can conclude that A is only bigger than B if: \f$\overline{A}.B\f$
+             * 
+             * However, a greater binary operation has different weights for all the bits in a variable, i.e, the more significant the bit is, the more weight it has in the operation.
+             * For example, in hypothetical terms, we are comparing 2 variables (A and B) both with 3 bits, A is greater than B if:
+             * ( A2 < B2 ) OR ( A2 = B2 AND A1 > B1 ) OR (A2 = B2 AND A1 = B1 AND A0 > B0 )
+             * 
+             * This can be translated into the following generic relation:
+             * 
+             * \begin{align*}
+             *      A>B &= \overline{A_{n}}.B_{n} \\\
+             *          &+ (\overline{A_{n} \oplus B_{n}}).(A_{n-1}.\overline{B_{n-1}}) \\\
+             *          &+ (...) \\\
+             *          &+ (\overline{A_{n} \oplus B_{n}}).(\overline{A_{n-1} \oplus B_{n-1}}).(...).(\overline{A_{1} \oplus B_{1}}).(A_{0}.\overline{B_{0}})
+             * \end{align*}
+             * 
+             * Where \f$n\f$ is the number of bits.
+             * 
+             * If we take a look at a greater unsigned operation, the signed operation has exactly the same expression, expect the comparison between the most significant bits, which represent the sign.
+             * 
+             * @param in_a Input variable \f$A\f$.
+             * @param in_b Input variable \f$B\f$.
+             * @param out Output wire \f$Greater\f$.
+            **/
+            void greater_s(const Variable& in_a, const Variable& in_b, Wire& out);
+
+            /**
+             * @brief Evaluates if signed variable A is greater than signed variable B.
+             * 
+             * -----
+             * 
+             * The circuit creation for a greater operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * 
+             * The greater binary operation for signed variables is represented by the following truth table:
+             * 
+             * | \f$A\f$ | \f$B\f$ | \f$>\f$ |
+             * | :-----: | :-----: | :-----: |
+             * | 0       | 0       | 0       |
+             * | 0       | 1       | 1       |
+             * | 1       | 0       | 0       |
+             * | 1       | 1       | 0       |
+             * 
+             * From the truth table, we can conclude that A is only bigger than B if: \f$\overline{A}.B\f$
+             * 
+             * However, a greater binary operation has different weights for all the bits in a variable, i.e, the more significant the bit is, the more weight it has in the operation.
+             * For example, in hypothetical terms, we are comparing 2 variables (A and B) both with 3 bits, A is greater than B if:
+             * ( A2 < B2 ) OR ( A2 = B2 AND A1 > B1 ) OR (A2 = B2 AND A1 = B1 AND A0 > B0 )
+             * 
+             * This can be translated into the following generic relation:
+             * 
+             * \begin{align*}
+             *      A>B &= \overline{A_{n}}.B_{n} \\\
+             *          &+ (\overline{A_{n} \oplus B_{n}}).(A_{n-1}.\overline{B_{n-1}}) \\\
+             *          &+ (...) \\\
+             *          &+ (\overline{A_{n} \oplus B_{n}}).(\overline{A_{n-1} \oplus B_{n-1}}).(...).(\overline{A_{1} \oplus B_{1}}).(A_{0}.\overline{B_{0}})
+             * \end{align*}
+             * 
+             * Where \f$n\f$ is the number of bits.
+             * 
+             * If we take a look at a greater unsigned operation, the signed operation has exactly the same expression, expect the comparison between the most significant bits, which represent the sign.
+             * 
+             * @param in_a Input variable \f$A\f$.
+             * @param in_b Input variable \f$B\f$.
+             * @param out Output variable \f$Greater\f$.
+            **/
+            void greater_s(const Variable& in_a, const Variable& in_b, Variable& out);
+
+            /**
+             * @brief Evaluates if unsigned variable A is smaller than unsigned variable B.
+             * 
+             * -----
+             * 
+             * The circuit creation for a smaller operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * 
+             * The smaller binary operation for unsigned variables is represented by the following truth table:
              * 
              * | \f$A\f$ | \f$B\f$ | \f$<\f$ |
              * | :-----: | :-----: | :-----: |
@@ -1528,14 +1616,16 @@ namespace gabe {
              * @param in_b Input variable \f$B\f$.
              * @param out Output wire \f$Smaller\f$.
             **/
-            void smaller(const Variable& in_a, const Variable& in_b, Wire& out);
+            void smaller_u(const Variable& in_a, const Variable& in_b, Wire& out);
 
             /**
-             * @brief Evaluates if variable A is smaller than variable B.
+             * @brief Evaluates if unsigned variable A is smaller than unsigned variable B.
              * 
              * -----
              * 
-             * The smaller binary operation is represented by the following truth table:
+             * The circuit creation for a smaller operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * 
+             * The smaller binary operation for unsigned variables is represented by the following truth table:
              * 
              * | \f$A\f$ | \f$B\f$ | \f$<\f$ |
              * | :-----: | :-----: | :-----: |
@@ -1565,14 +1655,98 @@ namespace gabe {
              * @param in_b Input variable \f$B\f$.
              * @param out Output variable \f$Smaller\f$.
             **/
-            void smaller(const Variable& in_a, const Variable& in_b, Variable& out);
+            void smaller_u(const Variable& in_a, const Variable& in_b, Variable& out);
 
             /**
-             * @brief Evaluates if variable A is greater or equal than variable B.
+             * @brief Evaluates if signed variable A is smaller than signed variable B.
              * 
              * -----
              * 
-             * The greater or equal binary operation is represented by the following truth table:
+             * The circuit creation for a smaller operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * 
+             * The smaller binary operation for signed variables is represented by the following truth table:
+             * 
+             * | \f$A\f$ | \f$B\f$ | \f$<\f$ |
+             * | :-----: | :-----: | :-----: |
+             * | 0       | 0       | 0       |
+             * | 0       | 1       | 0       |
+             * | 1       | 0       | 1       |
+             * | 1       | 1       | 0       |
+             * 
+             * From the truth table, we can conclude that A is only smaller than B if: \f$A.\overline{B}\f$
+             * 
+             * However, a smaller binary operation has different weights for all the bits in a variable, i.e, the more significant the bit is, the more weight it has in the operation.
+             * For example, in hypothetical terms, we are comparing 2 variables (A and B) both with 3 bits, A is smaller than B if:
+             * ( A2 > B2 ) OR ( A2 = B2 AND A1 < B1 ) OR (A2 = B2 AND A1 = B1 AND A0 < B0 )
+             * 
+             * This can be translated into the following generic relation:
+             * 
+             * \begin{align*}
+             *      A<B &= A_{n}.\overline{B_{n}} \\\
+             *          &+ (\overline{A_{n} \oplus B_{n}}).(\overline{A_{n-1}}.B_{n-1}) \\\
+             *          &+ (...) \\\
+             *          &+ (\overline{A_{n} \oplus B_{n}}).(\overline{A_{n-1} \oplus B_{n-1}}).(...).(\overline{A_{1} \oplus B_{1}}).(\overline{A_{0}}.B_{0})
+             * \end{align*}
+             * 
+             * Where \f$n\f$ is the number of bits.
+             * 
+             * If we take a look at a smaller unsigned operation, the signed operation has exactly the same expression, expect the comparison between the most significant bits, which represent the sign.
+             * 
+             * @param in_a Input variable \f$A\f$.
+             * @param in_b Input variable \f$B\f$.
+             * @param out Output wire \f$Smaller\f$.
+            **/
+            void smaller_s(const Variable& in_a, const Variable& in_b, Wire& out);
+
+            /**
+             * @brief Evaluates if signed variable A is smaller than signed variable B.
+             * 
+             * -----
+             * 
+             * The circuit creation for a smaller operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * 
+             * The smaller binary operation for signed variables is represented by the following truth table:
+             * 
+             * | \f$A\f$ | \f$B\f$ | \f$<\f$ |
+             * | :-----: | :-----: | :-----: |
+             * | 0       | 0       | 0       |
+             * | 0       | 1       | 0       |
+             * | 1       | 0       | 1       |
+             * | 1       | 1       | 0       |
+             * 
+             * From the truth table, we can conclude that A is only smaller than B if: \f$A.\overline{B}\f$
+             * 
+             * However, a smaller binary operation has different weights for all the bits in a variable, i.e, the more significant the bit is, the more weight it has in the operation.
+             * For example, in hypothetical terms, we are comparing 2 variables (A and B) both with 3 bits, A is smaller than B if:
+             * ( A2 > B2 ) OR ( A2 = B2 AND A1 < B1 ) OR (A2 = B2 AND A1 = B1 AND A0 < B0 )
+             * 
+             * This can be translated into the following generic relation:
+             * 
+             * \begin{align*}
+             *      A<B &= A_{n}.\overline{B_{n}} \\\
+             *          &+ (\overline{A_{n} \oplus B_{n}}).(\overline{A_{n-1}}.B_{n-1}) \\\
+             *          &+ (...) \\\
+             *          &+ (\overline{A_{n} \oplus B_{n}}).(\overline{A_{n-1} \oplus B_{n-1}}).(...).(\overline{A_{1} \oplus B_{1}}).(\overline{A_{0}}.B_{0})
+             * \end{align*}
+             * 
+             * Where \f$n\f$ is the number of bits.
+             * 
+             * If we take a look at a smaller unsigned operation, the signed operation has exactly the same expression, expect the comparison between the most significant bits, which represent the sign.
+             * 
+             * @param in_a Input variable \f$A\f$.
+             * @param in_b Input variable \f$B\f$.
+             * @param out Output variable \f$Smaller\f$.
+            **/
+            void smaller_s(const Variable& in_a, const Variable& in_b, Variable& out);
+
+            /**
+             * @brief Evaluates if unsigned variable A is greater or equal than unsigned variable B.
+             * 
+             * -----
+             * 
+             * The circuit creation for a greater or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * 
+             * The greater or equal binary operation for unsigned variables is represented by the following truth table:
              * 
              * | \f$A\f$ | \f$B\f$ | \f$\geq\f$ |
              * | :-----: | :-----: | :--------: |
@@ -1581,20 +1755,22 @@ namespace gabe {
              * | 1       | 0       | 1          |
              * | 1       | 1       | 1          |
              * 
-             * We can see that this truth table is a "smaller" operation truth table negated. As so, we can conclude that we can achieve the greater or equal operation by negating the smaller operation result.
+             * We can see that this truth table is a "smaller" unsigned operation truth table negated. As so, we can conclude that we can achieve the greater or equal operation by negating the smaller operation result.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
              * @param out Output wire \f$Greater\:or\:equal\f$.
             **/
-            void greater_or_equal(const Variable& in_a, const Variable& in_b, Wire& out);
+            void greater_or_equal_u(const Variable& in_a, const Variable& in_b, Wire& out);
 
             /**
-             * @brief Evaluates if variable A is greater or equal than variable B.
+             * @brief Evaluates if unsigned variable A is greater or equal than unsigned variable B.
              * 
              * -----
              * 
-             * The greater or equal binary operation is represented by the following truth table:
+             * The circuit creation for a greater or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * 
+             * The greater or equal binary operation for unsigned variables is represented by the following truth table:
              * 
              * | \f$A\f$ | \f$B\f$ | \f$\geq\f$ |
              * | :-----: | :-----: | :--------: |
@@ -1603,20 +1779,70 @@ namespace gabe {
              * | 1       | 0       | 1          |
              * | 1       | 1       | 1          |
              * 
-             * We can see that this truth table is a "smaller" operation truth table negated. As so, we can conclude that we can achieve the greater or equal operation by negating the smaller operation result.
+             * We can see that this truth table is a "smaller" unsigned operation truth table negated. As so, we can conclude that we can achieve the greater or equal operation by negating the smaller operation result.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
              * @param out Output variable \f$Greater\:or\:equal\f$.
             **/
-            void greater_or_equal(const Variable& in_a, const Variable& in_b, Variable& out);
+            void greater_or_equal_u(const Variable& in_a, const Variable& in_b, Variable& out);
 
             /**
-             * @brief Evaluates if variable A is smaller or equal than variable B.
+             * @brief Evaluates if signed variable A is greater or equal than signed variable B.
              * 
              * -----
              * 
-             * The smaller or equal binary operation is represented by the following truth table:
+             * The circuit creation for a greater or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * 
+             * The greater or equal binary operation for signed variables is represented by the following truth table:
+             * 
+             * | \f$A\f$ | \f$B\f$ | \f$\geq\f$ |
+             * | :-----: | :-----: | :--------: |
+             * | 0       | 0       | 1          |
+             * | 0       | 1       | 1          |
+             * | 1       | 0       | 0          |
+             * | 1       | 1       | 1          |
+             * 
+             * We can see that this truth table is a "smaller" signed operation truth table negated. As so, we can conclude that we can achieve the greater or equal operation by negating the smaller operation result.
+             * 
+             * @param in_a Input variable \f$A\f$.
+             * @param in_b Input variable \f$B\f$.
+             * @param out Output wire \f$Greater\:or\:equal\f$.
+            **/
+            void greater_or_equal_s(const Variable& in_a, const Variable& in_b, Wire& out);
+
+            /**
+             * @brief Evaluates if signed variable A is greater or equal than signed variable B.
+             * 
+             * -----
+             * 
+             * The circuit creation for a greater or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * 
+             * The greater or equal binary operation for signed variables is represented by the following truth table:
+             * 
+             * | \f$A\f$ | \f$B\f$ | \f$\geq\f$ |
+             * | :-----: | :-----: | :--------: |
+             * | 0       | 0       | 1          |
+             * | 0       | 1       | 1          |
+             * | 1       | 0       | 0          |
+             * | 1       | 1       | 1          |
+             * 
+             * We can see that this truth table is a "smaller" signed operation truth table negated. As so, we can conclude that we can achieve the greater or equal operation by negating the smaller operation result.
+             * 
+             * @param in_a Input variable \f$A\f$.
+             * @param in_b Input variable \f$B\f$.
+             * @param out Output variable \f$Greater\:or\:equal\f$.
+            **/
+            void greater_or_equal_s(const Variable& in_a, const Variable& in_b, Variable& out);
+
+            /**
+             * @brief Evaluates if unsigned variable A is smaller or equal than unsigned variable B.
+             * 
+             * -----
+             * 
+             * The circuit creation for a smaller or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * 
+             * The smaller or equal binary operation for unsigned variables is represented by the following truth table:
              * 
              * | \f$A\f$ | \f$B\f$ | \f$\leq\f$ |
              * | :-----: | :-----: | :--------: |
@@ -1625,20 +1851,22 @@ namespace gabe {
              * | 1       | 0       | 0          |
              * | 1       | 1       | 1          |
              * 
-             * We can see that this truth table is a "greater" operation truth table negated. As so, we can conclude that we can achieve the smaller or equal operation by negating the greater operation result.
+             * We can see that this truth table is a "greater" unsigned operation truth table negated. As so, we can conclude that we can achieve the smaller or equal operation by negating the greater operation result.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
              * @param out Output wire \f$Smaller\:or\:equal\f$.
             **/
-            void smaller_or_equal(const Variable& in_a, const Variable& in_b, Wire& out);
+            void smaller_or_equal_u(const Variable& in_a, const Variable& in_b, Wire& out);
 
             /**
-             * @brief Evaluates if variable A is smaller or equal than variable B.
+             * @brief Evaluates if unsigned variable A is smaller or equal than unsigned variable B.
              * 
              * -----
              * 
-             * The smaller or equal binary operation is represented by the following truth table:
+             * The circuit creation for a smaller or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * 
+             * The smaller or equal binary operation for unsigned variables is represented by the following truth table:
              * 
              * | \f$A\f$ | \f$B\f$ | \f$\leq\f$ |
              * | :-----: | :-----: | :--------: |
@@ -1647,22 +1875,72 @@ namespace gabe {
              * | 1       | 0       | 0          |
              * | 1       | 1       | 1          |
              * 
-             * We can see that this truth table is a "greater" operation truth table negated. As so, we can conclude that we can achieve the smaller or equal operation by negating the greater operation result.
+             * We can see that this truth table is a "greater" unsigned operation truth table negated. As so, we can conclude that we can achieve the smaller or equal operation by negating the greater operation result.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
              * @param out Output variable \f$Smaller\:or\:equal\f$.
             **/
-            void smaller_or_equal(const Variable& in_a, const Variable& in_b, Variable& out);
+            void smaller_or_equal_u(const Variable& in_a, const Variable& in_b, Variable& out);
 
             /**
-             * @brief Compares two binary numbers.
+             * @brief Evaluates if signed variable A is smaller or equal than signed variable B.
+             * 
+             * -----
+             * 
+             * The circuit creation for a smaller or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * 
+             * The smaller or equal binary operation for signed variables is represented by the following truth table:
+             * 
+             * | \f$A\f$ | \f$B\f$ | \f$\leq\f$ |
+             * | :-----: | :-----: | :--------: |
+             * | 0       | 0       | 1          |
+             * | 0       | 1       | 0          |
+             * | 1       | 0       | 1          |
+             * | 1       | 1       | 1          |
+             * 
+             * We can see that this truth table is a "greater" signed operation truth table negated. As so, we can conclude that we can achieve the smaller or equal operation by negating the greater operation result.
+             * 
+             * @param in_a Input variable \f$A\f$.
+             * @param in_b Input variable \f$B\f$.
+             * @param out Output wire \f$Smaller\:or\:equal\f$.
+            **/
+            void smaller_or_equal_s(const Variable& in_a, const Variable& in_b, Wire& out);
+
+            /**
+             * @brief Evaluates if signed variable A is smaller or equal than signed variable B.
+             * 
+             * -----
+             * 
+             * The circuit creation for a smaller or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * 
+             * The smaller or equal binary operation for signed variables is represented by the following truth table:
+             * 
+             * | \f$A\f$ | \f$B\f$ | \f$\leq\f$ |
+             * | :-----: | :-----: | :--------: |
+             * | 0       | 0       | 1          |
+             * | 0       | 1       | 0          |
+             * | 1       | 0       | 1          |
+             * | 1       | 1       | 1          |
+             * 
+             * We can see that this truth table is a "greater" signed operation truth table negated. As so, we can conclude that we can achieve the smaller or equal operation by negating the greater operation result.
+             * 
+             * @param in_a Input variable \f$A\f$.
+             * @param in_b Input variable \f$B\f$.
+             * @param out Output variable \f$Smaller\:or\:equal\f$.
+            **/
+            void smaller_or_equal_s(const Variable& in_a, const Variable& in_b, Variable& out);
+
+            /**
+             * @brief Compares two unsigned binary numbers.
              * 
              * -----
              * 
              * A magnitude digital comparator is a combinational circuit that compares two digital or binary numbers in order to find out whether one binary number is equal, less than, or greater than the other binary number.
              * 
-             * A comparator truth table is the fusion of the equal, greater, and smaller truth tables:
+             * The circuit creation for a comparator operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * 
+             * An unsigned comparator truth table is the fusion of the equal, greater, and smaller truth tables for unsigned variables:
              * 
              * | \f$A\f$ | \f$B\f$ | \f$=\f$ | \f$>\f$ | \f$<\f$ |
              * | :-----: | :-----: | :-----: | :-----: | :-----: |
@@ -1671,7 +1949,7 @@ namespace gabe {
              * | 1       | 0       | 0       | 1       | 0       |
              * | 1       | 1       | 1       | 0       | 0       |
              * 
-             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller operations (check operations documentation).
+             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller unsigned operations (check operations documentation).
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1679,16 +1957,18 @@ namespace gabe {
              * @param out_g Output wire \f$Greater\f$.
              * @param out_s Output wire \f$Smaller\f$.
             **/
-            void comparator(const Variable& in_a, const Variable& in_b, Wire& out_e, Wire& out_g, Wire &out_s);
+            void comparator_u(const Variable& in_a, const Variable& in_b, Wire& out_e, Wire& out_g, Wire &out_s);
             
             /**
-             * @brief Compares two binary numbers.
+             * @brief Compares two unsigned binary numbers.
              * 
              * -----
              * 
              * A magnitude digital comparator is a combinational circuit that compares two digital or binary numbers in order to find out whether one binary number is equal, less than, or greater than the other binary number.
              * 
-             * A comparator truth table is the fusion of the equal, greater, and smaller truth tables:
+             * The circuit creation for a comparator operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * 
+             * An unsigned comparator truth table is the fusion of the equal, greater, and smaller truth tables for unsigned variables:
              * 
              * | \f$A\f$ | \f$B\f$ | \f$=\f$ | \f$>\f$ | \f$<\f$ |
              * | :-----: | :-----: | :-----: | :-----: | :-----: |
@@ -1697,7 +1977,7 @@ namespace gabe {
              * | 1       | 0       | 0       | 1       | 0       |
              * | 1       | 1       | 1       | 0       | 0       |
              * 
-             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller operations (check operations documentation).
+             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller unsigned operations (check operations documentation).
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1705,7 +1985,63 @@ namespace gabe {
              * @param out_g Output variable \f$Greater\f$.
              * @param out_s Output variable \f$Smaller\f$.
             **/
-            void comparator(const Variable& in_a, const Variable& in_b, Variable& out_e, Variable& out_g, Variable &out_s);
+            void comparator_u(const Variable& in_a, const Variable& in_b, Variable& out_e, Variable& out_g, Variable &out_s);
+
+            /**
+             * @brief Compares two signed binary numbers.
+             * 
+             * -----
+             * 
+             * A magnitude digital comparator is a combinational circuit that compares two digital or binary numbers in order to find out whether one binary number is equal, less than, or greater than the other binary number.
+             * 
+             * The circuit creation for a comparator operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * 
+             * A signed comparator truth table is the fusion of the equal, greater, and smaller truth tables for signed variables:
+             * 
+             * | \f$A\f$ | \f$B\f$ | \f$=\f$ | \f$>\f$ | \f$<\f$ |
+             * | :-----: | :-----: | :-----: | :-----: | :-----: |
+             * | 0       | 0       | 1       | 0       | 0       |
+             * | 0       | 1       | 0       | 1       | 0       |
+             * | 1       | 0       | 0       | 0       | 1       |
+             * | 1       | 1       | 1       | 0       | 0       |
+             * 
+             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller signed operations (check operations documentation).
+             * 
+             * @param in_a Input variable \f$A\f$.
+             * @param in_b Input variable \f$B\f$.
+             * @param out_e Output variable \f$Equal\f$.
+             * @param out_g Output variable \f$Greater\f$.
+             * @param out_s Output variable \f$Smaller\f$.
+            **/
+            void comparator_s(const Variable& in_a, const Variable& in_b, Wire& out_e, Wire& out_g, Wire &out_s);
+
+            /**
+             * @brief Compares two signed binary numbers.
+             * 
+             * -----
+             * 
+             * A magnitude digital comparator is a combinational circuit that compares two digital or binary numbers in order to find out whether one binary number is equal, less than, or greater than the other binary number.
+             * 
+             * The circuit creation for a comparator operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * 
+             * A signed comparator truth table is the fusion of the equal, greater, and smaller truth tables for signed variables:
+             * 
+             * | \f$A\f$ | \f$B\f$ | \f$=\f$ | \f$>\f$ | \f$<\f$ |
+             * | :-----: | :-----: | :-----: | :-----: | :-----: |
+             * | 0       | 0       | 1       | 0       | 0       |
+             * | 0       | 1       | 0       | 1       | 0       |
+             * | 1       | 0       | 0       | 0       | 1       |
+             * | 1       | 1       | 1       | 0       | 0       |
+             * 
+             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller signed operations (check operations documentation).
+             * 
+             * @param in_a Input variable \f$A\f$.
+             * @param in_b Input variable \f$B\f$.
+             * @param out_e Output wire \f$Equal\f$.
+             * @param out_g Output wire \f$Greater\f$.
+             * @param out_s Output wire \f$Smaller\f$.
+            **/
+            void comparator_s(const Variable& in_a, const Variable& in_b, Variable& out_e, Variable& out_g, Variable &out_s);
         };
     }
 }

@@ -632,7 +632,7 @@ void gabe::bcgen::CircuitGenerator::divide_u(const Variable& in_a, const Variabl
         // Checks if the current remainder value can subtract the divisor value
         // > This can only be done if remainder value >= divisor value.
         // > The control variable from this check will also be the quotient bit value
-        greater_or_equal(out_r, in_b, control);
+        greater_or_equal_u(out_r, in_b, control);
 
         // Defines if the value to subtract from the remainder if zero of the divisor
         Variable subtractor(in_a.size());
@@ -679,7 +679,7 @@ void gabe::bcgen::CircuitGenerator::divide_u_quotient(const Variable& in_a, cons
         // Checks if the current remainder value can subtract the divisor value
         // > This can only be done if remainder value >= divisor value.
         // > The control variable from this check will also be the quotient bit value
-        greater_or_equal(remainder, in_b, control);
+        greater_or_equal_u(remainder, in_b, control);
 
         // We do not want to perform the following operations in the last bit
         // > Otherwise the remainder wires would be left "dead"
@@ -902,7 +902,7 @@ void gabe::bcgen::CircuitGenerator::equal(const Variable& in_a, const Variable& 
     equal(in_a, in_b, out[0]);
 }
 
-void gabe::bcgen::CircuitGenerator::greater(const Variable& in_a, const Variable& in_b, Wire& out) {
+void gabe::bcgen::CircuitGenerator::greater_u(const Variable& in_a, const Variable& in_b, Wire& out) {
 #if BCGEN_OPTIMIZE
     // TODO: Think in the function optimization...
     // > Variables should have arbitrary size
@@ -944,7 +944,7 @@ void gabe::bcgen::CircuitGenerator::greater(const Variable& in_a, const Variable
 
     // Calculates all the operations between the ORs
     // > -1 is because the most significant bit is already assigned in the output
-    for (int i = 0; i < in_a.size() - 1; i++) {
+    for (int i = 0; i < msb; i++) {
         // Current operation between ORs
         Wire cur_operation;
         AND(a_and_not_b[i], xnors[i+1], cur_operation);
@@ -955,14 +955,77 @@ void gabe::bcgen::CircuitGenerator::greater(const Variable& in_a, const Variable
 #endif
 }
 
-void gabe::bcgen::CircuitGenerator::greater(const Variable& in_a, const Variable& in_b, Variable& out) {
+void gabe::bcgen::CircuitGenerator::greater_u(const Variable& in_a, const Variable& in_b, Variable& out) {
     assign_value(out, 0);
 
     // Performs the greater operation
-    greater(in_a, in_b, out[0]);
+    greater_u(in_a, in_b, out[0]);
 }
 
-void gabe::bcgen::CircuitGenerator::smaller(const Variable& in_a, const Variable& in_b, Wire& out) {
+void gabe::bcgen::CircuitGenerator::greater_s(const Variable& in_a, const Variable& in_b, Wire& out) {
+#if BCGEN_OPTIMIZE
+    // TODO: Think in the function optimization...
+    // > Variables should have arbitrary size
+    // > Perform as many bit operations as the length of the input variables
+#else
+    // Safety checks
+    _assert_equal_size(in_a, in_b.size());
+
+    // Util variables
+    const uint64_t msb = in_a.size() - 1; // msb = Most Significant Bit
+
+    // Calculates A AND NOT_B
+    // > B bits must be negated (except the most significant bit)
+    // > B negated bits must be AND with the A bits (except the most significant bit)
+    Variable a_and_not_b(in_b.size());
+    {
+        for (int i = 0; i < msb; i++) {
+            Wire not_b;
+            INV(in_b[i], not_b);
+            AND(in_a[i], not_b, a_and_not_b[i]);
+        }
+    }
+
+    // Calculates all the XNORs
+    // > All the bits need to be XNORed, except the least significant one
+    // > The i-th xnored bit must be AND with the XNORs from all its most significant bits
+    // > (Check documentation expression)
+    Variable xnors(in_a.size());
+    for (int i = msb; i > 0; i--) {
+        // XNOR current bit
+        XNOR(in_a[i], in_b[i], xnors[i]);
+
+        // Updates the XNOR chain of the current bit
+        if (i != msb) {
+            AND(xnors[i], xnors[i+1], xnors[i]);
+        }
+    }
+
+    // Calculates and assigns the most significant bit to the output result
+    INV(in_a[msb], out);
+    AND(in_b[msb], out, out);
+
+    // Calculates all the operations between the ORs
+    // > -1 is because the most significant bit is already assigned in the output
+    for (int i = 0; i < msb; i++) {
+        // Current operation between ORs
+        Wire cur_operation;
+        AND(a_and_not_b[i], xnors[i+1], cur_operation);
+
+        // Updates the output
+        OR(cur_operation, out, out);
+    }
+#endif
+}
+
+void gabe::bcgen::CircuitGenerator::greater_s(const Variable& in_a, const Variable& in_b, Variable& out) {
+    assign_value(out, 0);
+
+    // Performs the greater operation
+    greater_s(in_a, in_b, out[0]);
+}
+
+void gabe::bcgen::CircuitGenerator::smaller_u(const Variable& in_a, const Variable& in_b, Wire& out) {
 #if BCGEN_OPTIMIZE
     // TODO: Think in the function optimization...
     // > Variables should have arbitrary size
@@ -1015,38 +1078,125 @@ void gabe::bcgen::CircuitGenerator::smaller(const Variable& in_a, const Variable
 #endif
 }
 
-void gabe::bcgen::CircuitGenerator::smaller(const Variable& in_a, const Variable& in_b, Variable& out) {
+void gabe::bcgen::CircuitGenerator::smaller_u(const Variable& in_a, const Variable& in_b, Variable& out) {
     assign_value(out, 0);
 
     // Performs the smaller operation
-    smaller(in_a, in_b, out[0]);
+    smaller_u(in_a, in_b, out[0]);
 }
 
-void gabe::bcgen::CircuitGenerator::greater_or_equal(const Variable& in_a, const Variable& in_b, Wire& out) {
-    smaller(in_a, in_b, out);
+void gabe::bcgen::CircuitGenerator::smaller_s(const Variable& in_a, const Variable& in_b, Wire& out) {
+#if BCGEN_OPTIMIZE
+    // TODO: Think in the function optimization...
+    // > Variables should have arbitrary size
+    // > Perform as many bit operations as the length of the input variables
+#else
+    // Safety checks
+    _assert_equal_size(in_a, in_b.size());
+
+    // Util variables
+    const uint64_t msb = in_a.size() - 1; // msb = Most Significant Bit
+
+    // Calculates NOT_A AND B
+    // > All the A bits must be negated
+    // > All the A negated bits must be AND with the B bits
+    Variable not_a_and_b(in_a.size());
+    {
+        for (int i = 0; i < msb; i++) {
+            Wire not_a;
+            INV(in_a[i], not_a);
+            AND(in_b[i], not_a, not_a_and_b[i]);
+        }
+    }
+
+    // Calculates all the XNORs
+    // > All the bits need to be XNORed, except the least significant one
+    // > The i-th xnored bit must be AND with the XNORs from all its most significant bits
+    // > (Check documentation expression)
+    Variable xnors(in_a.size());
+    for (int i = msb; i > 0; i--) {
+        // XNOR current bit
+        XNOR(in_a[i], in_b[i], xnors[i]);
+
+        // Updates the XNOR chain of the current bit
+        if (i != msb) {
+            AND(xnors[i], xnors[i+1], xnors[i]);
+        }
+    }
+
+    // Calculates and assigns the most significant bit to the output result
+    INV(in_b[msb], out);
+    AND(in_a[msb], out, out);
+
+    // Calculates all the operations between the ORs
+    // > -1 is because the most significant bit is already assigned in the output
+    for (int i = 0; i < in_a.size() - 1; i++) {
+        // Current operation between ORs
+        Wire cur_operation;
+        AND(not_a_and_b[i], xnors[i+1], cur_operation);
+
+        // Updates the output
+        OR(cur_operation, out, out);
+    }
+#endif
+}
+
+void gabe::bcgen::CircuitGenerator::smaller_s(const Variable& in_a, const Variable& in_b, Variable& out) {
+    assign_value(out, 0);
+
+    // Performs the smaller operation
+    smaller_s(in_a, in_b, out[0]);
+}
+
+void gabe::bcgen::CircuitGenerator::greater_or_equal_u(const Variable& in_a, const Variable& in_b, Wire& out) {
+    smaller_u(in_a, in_b, out);
     INV(out, out);
 }
 
-void gabe::bcgen::CircuitGenerator::greater_or_equal(const Variable& in_a, const Variable& in_b, Variable& out) {
+void gabe::bcgen::CircuitGenerator::greater_or_equal_u(const Variable& in_a, const Variable& in_b, Variable& out) {
     assign_value(out, 0);
 
     // Performs the greater or equal operation
-    greater_or_equal(in_a, in_b, out[0]);
+    greater_or_equal_u(in_a, in_b, out[0]);
 }
 
-void gabe::bcgen::CircuitGenerator::smaller_or_equal(const Variable& in_a, const Variable& in_b, Wire& out) {
-    greater(in_a, in_b, out);
+void gabe::bcgen::CircuitGenerator::greater_or_equal_s(const Variable& in_a, const Variable& in_b, Wire& out) {
+    smaller_s(in_a, in_b, out);
     INV(out, out);
 }
 
-void gabe::bcgen::CircuitGenerator::smaller_or_equal(const Variable& in_a, const Variable& in_b, Variable& out) {
+void gabe::bcgen::CircuitGenerator::greater_or_equal_s(const Variable& in_a, const Variable& in_b, Variable& out) {
+    assign_value(out, 0);
+
+    // Performs the greater or equal operation
+    greater_or_equal_s(in_a, in_b, out[0]);
+}
+
+void gabe::bcgen::CircuitGenerator::smaller_or_equal_u(const Variable& in_a, const Variable& in_b, Wire& out) {
+    greater_u(in_a, in_b, out);
+    INV(out, out);
+}
+
+void gabe::bcgen::CircuitGenerator::smaller_or_equal_u(const Variable& in_a, const Variable& in_b, Variable& out) {
     assign_value(out, 0);
 
     // Performs the smaller or equal operation
-    smaller_or_equal(in_a, in_b, out[0]);
+    smaller_or_equal_u(in_a, in_b, out[0]);
 }
 
-void gabe::bcgen::CircuitGenerator::comparator(const Variable& in_a, const Variable& in_b, Wire& out_e, Wire& out_g, Wire& out_s) {
+void gabe::bcgen::CircuitGenerator::smaller_or_equal_s(const Variable& in_a, const Variable& in_b, Wire& out) {
+    greater_s(in_a, in_b, out);
+    INV(out, out);
+}
+
+void gabe::bcgen::CircuitGenerator::smaller_or_equal_s(const Variable& in_a, const Variable& in_b, Variable& out) {
+    assign_value(out, 0);
+
+    // Performs the smaller or equal operation
+    smaller_or_equal_s(in_a, in_b, out[0]);
+}
+
+void gabe::bcgen::CircuitGenerator::comparator_u(const Variable& in_a, const Variable& in_b, Wire& out_e, Wire& out_g, Wire& out_s) {
     // Safety checks
     _assert_equal_size(in_a, in_b.size());
 
@@ -1113,11 +1263,87 @@ void gabe::bcgen::CircuitGenerator::comparator(const Variable& in_a, const Varia
     INV(out_e, out_e);
 }
 
-void gabe::bcgen::CircuitGenerator::comparator(const Variable& in_a, const Variable& in_b, Variable& out_e, Variable& out_g, Variable &out_s) {
+void gabe::bcgen::CircuitGenerator::comparator_u(const Variable& in_a, const Variable& in_b, Variable& out_e, Variable& out_g, Variable &out_s) {
     assign_value(out_e, 0);
     assign_value(out_g, 0);
     assign_value(out_s, 0);
 
     // Performs the smaller or equal operation
-    comparator(in_a, in_b, out_e[0], out_g[0], out_s[0]);
+    comparator_u(in_a, in_b, out_e[0], out_g[0], out_s[0]);
+}
+
+void gabe::bcgen::CircuitGenerator::comparator_s(const Variable& in_a, const Variable& in_b, Wire& out_e, Wire& out_g, Wire& out_s) {
+    // Safety checks
+    _assert_equal_size(in_a, in_b.size());
+
+    // Util variables
+    const uint64_t msb = in_a.size() - 1; // msb = Most Significant Bit
+
+    // Calculates A AND NOT_B (greater part) (msb for smaller part)
+    // > All the B bits must be negated
+    // > All the B negated bits must be AND with the A bits
+    Variable a_and_not_b(in_b.size());
+    {
+        Variable not_b(in_b.size());
+        INV(in_b, not_b);
+        AND(in_a, not_b, a_and_not_b);
+    }
+
+    // Calculates NOT_A AND B (smaller part) (msb for greater part)
+    // > All the A bits must be negated
+    // > All the A negated bits must be AND with the B bits
+    Variable not_a_and_b(in_a.size());
+    {
+        Variable not_a(in_a.size());
+        INV(in_a, not_a);
+        AND(not_a, in_b, not_a_and_b);
+    }
+
+    // Calculates all the XNORs (all parts)
+    // > All the bits need to be XNORed, except the least significant one
+    // > The i-th xnored bit must be AND with the XNORs from all its most significant bits
+    // > (Check documentation expression)
+    Variable xnors(in_a.size());
+    for (int i = msb; i > 0; i--) {
+        // XNOR current bit
+        XNOR(in_a[i], in_b[i], xnors[i]);
+
+        // Updates the XNOR chain of the current bit
+        if (i != msb) {
+            AND(xnors[i], xnors[i+1], xnors[i]);
+        }
+    }
+
+    // Assigns the most significant bit to the greater and smaller output results
+    out_g = not_a_and_b[msb];
+    out_s = a_and_not_b[msb];
+
+    // Calculates all the operations between the ORs
+    // > -1 is because the most significant bit is already assigned in the output
+    for (int i = 0; i < in_a.size() - 1; i++) {
+        // Current operation between ORs (greater part)
+        Wire cur_operation_g;
+        AND(a_and_not_b[i], xnors[i+1], cur_operation_g);
+
+        // Current operation between ORs (smaller part)
+        Wire cur_operation_s;
+        AND(not_a_and_b[i], xnors[i+1], cur_operation_s);
+
+        // Updates the outputs
+        OR(cur_operation_g, out_g, out_g);
+        OR(cur_operation_s, out_s, out_s);
+    }
+
+    // Finally, the equal part
+    OR(out_g, out_s, out_e);
+    INV(out_e, out_e);
+}
+
+void gabe::bcgen::CircuitGenerator::comparator_s(const Variable& in_a, const Variable& in_b, Variable& out_e, Variable& out_g, Variable &out_s) {
+    assign_value(out_e, 0);
+    assign_value(out_g, 0);
+    assign_value(out_s, 0);
+
+    // Performs the smaller or equal operation
+    comparator_s(in_a, in_b, out_e[0], out_g[0], out_s[0]);
 }
