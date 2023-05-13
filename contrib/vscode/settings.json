@@ -1,5 +1,5 @@
 {
-    "editor.rulers": [ 160 ],
+    "editor.rulers": [ 130 ],
     "files.associations": {
         "array": "cpp",
         "atomic": "cpp",

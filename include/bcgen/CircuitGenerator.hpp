@@ -75,6 +75,14 @@ namespace gabe {
              * @return Size of the variable (number wires).
             **/
             uint64_t size() const;
+
+            using iterator = std::vector<Wire>::iterator;
+            using const_iterator = std::vector<Wire>::const_iterator;
+
+            iterator begin() { return _wires.begin(); }
+            const_iterator begin() const { return _wires.begin(); }
+            iterator end() { return _wires.end(); }
+            const_iterator end() const { return _wires.end(); }
         };
         
         /**
@@ -82,11 +90,13 @@ namespace gabe {
          * 
          * -----
          * 
-         * This class has the core functionality of a circuit generator. Every class that extends from this will inherite this core methods. The child classes can also overwrite two methods that should be changed for specialized purposes.
+         * This class has the core functionality of a circuit generator. Every class that extends from this will inherite this
+         * core methods. The child classes can also overwrite two methods that should be changed for specialized purposes.
          * 
          * @note Currently, this class is limited to integer operations.
          * 
-         * @note This class is abstract and designed to not be able to be instantiated. It is meant to be extended from, and its child dedicated to a circuit format.
+         * @note This class is abstract and designed to not be able to be instantiated. It is meant to be extended from, and its
+         * child dedicated to a circuit format.
         **/
         class CircuitGenerator
         {
@@ -98,6 +108,7 @@ namespace gabe {
             // Circuit info
             std::vector<uint64_t> _input_parties; /**<Input parties and their sizes.*/
             std::vector<uint64_t> _output_parties; /**<Output parties and their sizes.*/
+            std::vector<Wire*> _output_wires; /**<Output wires from the output parties.*/
             std::unordered_map<std::string, std::string> _gates_map; /**<Mapping of gates names.*/
 
             // Circuit info complement - Control variables
@@ -105,6 +116,7 @@ namespace gabe {
             uint64_t _counter_gates = 0x00; /**<Control variable to count gates.*/
             uint64_t _expected_input_wires = 0x00; /**<Input wires expected to be assigned to input variables.*/
             uint64_t _expected_output_wires = 0x00; /**<Output wires expected to be assigned to output variables.*/
+            uint64_t _assigned_output_wires = 0x00; /**<Output wires expected to be assigned to output variables.*/
             std::unordered_map<std::string, uint64_t> _gates_counters; /**<Mapping control variable to count all the gates.*/
 
             // Circuit buffer - Memory management
@@ -123,8 +135,10 @@ namespace gabe {
              * 
              * -----
              * 
-             * By default, the circuits location is directed to a "circuits" directory in the same directory on which the executable is called.
-             * It will not create the directory if the specified string is empty.
+             * By default, the circuits location is directed to a "circuits" directory in the same directory on which the
+             * executable is called.
+             *
+             * @note It will not create the directory if the specified string is empty.
             **/
             void _create_save_directory();
 
@@ -160,7 +174,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function only constructs the gate (1:1) line that will be written into the circuit file. This line is then given to the _write_gate function.
+             * This function only constructs the gate (1:1) line that will be written into the circuit file. This line is then
+             * given to the _write_gate function.
              * 
              * @param in_a Input wire.
              * @param output Output wire.
@@ -173,7 +188,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function only constructs the gate (2:1) line that will be written into the circuit file. This line is then given to the _write_gate function.
+             * This function only constructs the gate (2:1) line that will be written into the circuit file. This line is then
+             * given to the _write_gate function.
              * 
              * @param in_a Input wire A.
              * @param in_b Input wire B.
@@ -206,6 +222,17 @@ namespace gabe {
              * @param size Number of wires to evaluate.
             **/
             void _assert_add_input(uint64_t size);
+
+            /**
+             * @brief Checks if the output variable can be added as output.
+             * 
+             * -----
+             * 
+             * This check raises a runtime expection if the variable size does exceed the total of available output wires.
+             * 
+             * @param size Number of wires to evaluate.
+            **/
+            void _assert_add_output(uint64_t size);
         
         // Constructors | Destructor
         protected:
@@ -217,7 +244,9 @@ namespace gabe {
              * 
              * -----
              * 
-             * In the end, the generated circuit file will have the name of the inserted circuit name. It will assume the default location of the circuit file to be at a "circuit" directory that is present in the location that called the executable.
+             * In the end, the generated circuit file will have the name of the inserted circuit name. It will assume the default
+             * location of the circuit file to be at a "circuit" directory that is present in the location that called the
+             * executable.
              * 
              * @param circuit_name Name of the circuit.
             **/
@@ -228,7 +257,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * In the end, the generated circuit file will have the name of the inserted circuit name and located into the inserted location.
+             * In the end, the generated circuit file will have the name of the inserted circuit name and located into the
+             * inserted location.
              * 
              * @param circuit_name Name of the circuit.
              * @param circuits_directory Location of the circuit.
@@ -245,7 +275,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * By default, this function is empty. It is meant to be overritten by any circuit generator class that extends from this one.
+             * By default, this function is empty. It is meant to be overritten by any circuit generator class that extends from
+             * this one.
              * 
              * @param file File to write.
             **/
@@ -256,7 +287,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * By default, this function is performs the write of the circuit section exactly how it should be. However, it is placed as abstract in case any child class needs to change its behavior.
+             * By default, this function is performs the write of the circuit section exactly how it should be. However, it is
+             * placed as abstract in case any child class needs to change its behavior.
              * 
              * @param file File to write.
             **/
@@ -269,7 +301,10 @@ namespace gabe {
              * 
              * -----
              * 
-             * By default, the circuit generator caches all the generated data until it is written into a circuit file, which is the last step. However, this can be a problem in several machines that are more RAM limited. In those cases, this function can be used to set a buffer limit to write into the circuit file once the buffer reaches a specified size. The size is in bytes.
+             * By default, the circuit generator caches all the generated data until it is written into a circuit file, which is
+             * the last step. However, this can be a problem in several machines that are more RAM limited. In those cases, this
+             * function can be used to set a buffer limit to write into the circuit file once the buffer reaches a specified size.
+             * The size is in bytes.
              * 
              * @param size Size of the buffer.
             **/
@@ -282,9 +317,12 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function adds a new input party and registers its size into a vector of input parties. The inserted party size will increase the number of available input variables that can be used to add input variables. This size is also important in the writing phase.
+             * This function adds a new input party and registers its size into a vector of input parties. The inserted party size
+             * will increase the number of available input variables that can be used to add input variables. This size is also
+             * important in the writing phase.
              * 
-             * @note This function should only be used before starting the circuit writing (after using the start() method). Otherwise, this function will not behave as expected.
+             * @note This function should only be used before starting the circuit writing (after using the start() method).
+             * Otherwise, this function will not behave as expected.
              * 
              * @param size Size of the input party.
             **/
@@ -297,7 +335,8 @@ namespace gabe {
              * 
              * This function adds a new output party and registers its size into a vector of output parties.
              * 
-             * @note This function should only be used before starting the circuit writing (after using the start() method). Otherwise, this function will not behave as expected.
+             * @note This function should only be used before starting the circuit writing (after using the start() method).
+             * Otherwise, this function will not behave as expected.
              * 
              * @param size Size of the output party.
             **/
@@ -308,11 +347,13 @@ namespace gabe {
              * 
              * -----
              * 
-             * This will assign a label to the inputed wire .
-             * This function expects that there is at least one avaliable input wire to be assigned into the input wire. The amount of circuit input wires is manageable by the add_input_party function.
+             * This will assign a label to the inputed wire.
+             * This function expects that there is at least one avaliable input wire to be assigned into the input wire. The
+             * amount of circuit input wires is manageable by the add_input_party function.
              * In case there is not an available wire, this function will raise a runtime exception.
              * 
-             * @note This function should only be used before starting the circuit writing (after using the start() method). Otherwise, this function will not behave as expected.
+             * @note This function should only be used before starting the circuit writing (before using the start() method).
+             * Otherwise, this function will not behave as expected.
              * 
              * @param wire Input wire in the circuit.
             **/
@@ -324,24 +365,68 @@ namespace gabe {
              * -----
              * 
              * This will assign labels to all the wires inside the inputed variable.
-             * This function expects that there are enough avaliable input wires to be assigned into the input variable. The amount of circuit input wires is manageable by the add_input_party function.
+             * This function expects that there are enough avaliable input wires to be assigned into the input variable. The
+             * amount of circuit input wires is manageable by the add_input_party function.
              * In case there are not enough input wires, this function will raise a runtime exception.
              * 
-             * @note This function should only be used before starting the circuit writing (after using the start() method). Otherwise, this function will not behave as expected.
+             * @note This function should only be used before starting the circuit writing (before using the start() method).
+             * Otherwise, this function will not behave as expected.
              * 
              * @param variable Input variable in the circuit.
             **/
             void add_input(Variable& variable);
 
             /**
+             * @brief Adds a wire as a circuit output.
+             * 
+             * -----
+             * 
+             * This will cache the input wire in a class member, which will be used in the very last step of the circuit
+             * writing (stop method).
+             * This function expects that there is at least one avaliable output wire. The amount of circuit output wires is
+             * manageable by the add_output_party function.
+             * In case there is not an available expected output wire, this function will raise a runtime exception.
+             * 
+             * Unlike the add_input function, this one will not assign a label to the inputed wire.
+             * 
+             * @note This function should only be used before starting the circuit writing (before using the start() method).
+             * Otherwise, this function will not behave as expected.
+             * 
+             * @param wire Output wire in the circuit.
+            **/
+            void add_output(Wire& wire);
+
+            /**
+             * @brief Adds a variable as a circuit output.
+             * 
+             * -----
+             * 
+             * This will cache the input wire in a class member, which will be used in the very last step of the circuit
+             * writing (stop method).
+             * This function expects that there is at least one avaliable output wire. The amount of circuit output wires is
+             * manageable by the add_output_party function.
+             * In case there is not an available expected output wire, this function will raise a runtime exception.
+             * 
+             * Unlike the add_input function, this one will not assign a label to the inputed wire.
+             * 
+             * @note This function should only be used before starting the circuit writing (before using the start() method).
+             * Otherwise, this function will not behave as expected.
+             * 
+             * @param variable Output variable in the circuit.
+            **/
+            void add_output(Variable& variable);
+
+            /**
              * @brief Starts the writing/construction of the circuit.
              * 
              * -----
              * 
-             * This function makes sure that all the inputs of the circuit were correctly setup, i.e that there are inputs and that all the defined input wires were all assigned to input variables.
+             * This function makes sure that all the inputs of the circuit were correctly setup, i.e that there are inputs and
+             * that all the defined input wires were all assigned to input variables.
              * If something is wrong with the initial setup, this function raises a runtime exception.
              * 
-             * Once the validation checks pass, this function ends up by creating the zero and one wires, wich are constant wires that assume the value 0 and 1 in the circuit, respectively.
+             * Once the validation checks pass, this function ends up by creating the zero and one wires, wich are constant wires
+             * that assume the value 0 and 1 in the circuit, respectively.
              * 
              * @note The add_input and add_input_party methods should not be used once this function is called.
             **/
@@ -352,7 +437,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * Once called, this function terminates the circuit construction and completes the writing into the circuit file, including defining correctly its header part, which is dependent of the total gates in the circuit.
+             * Once called, this function terminates the circuit construction and completes the writing into the circuit file,
+             * including defining correctly its header part, which is dependent of the total gates in the circuit.
              * To conclude, it also prints into the console the total amount of gates and wires of the created circuit.
             **/
             void stop();
@@ -364,12 +450,16 @@ namespace gabe {
              * 
              * -----
              * 
-             * A wire can have a value either 0 or 1. Whenever it is needed to have a wire with one of these constants, this function should be used.
-             * Once called, the wire label is filled as the "zero_wire" or as the "one_wire", depending if the desired value is 0 or 1, respectively.
+             * A wire can have a value either 0 or 1. Whenever it is needed to have a wire with one of these constants, this
+             * function should be used.
+             * Once called, the wire label is filled as the "zero_wire" or as the "one_wire", depending if the desired value is 0 
+             * or 1, respectively.
              * 
-             * This function supports a 8 bit value as input, however, only the least signiticant bit is taken into account. For example, if the user inputs a value of 254 (11111110), the wire is assumed to have the value of 0.
+             * This function supports a 8 bit value as input, however, only the least signiticant bit is taken into account. For
+             * example, if the user inputs a value of 254 (11111110), the wire is assumed to have the value of 0.
              * 
-             * @note This function should only be used after starting the circuit writing (after using the start() method). Otherwise, this function will not behave as expected.
+             * @note This function should only be used after starting the circuit writing (after using the start() method).
+             * Otherwise, this function will not behave as expected.
              * 
              * @param wire Wire reference to assign a value to.
              * @param value Value that the wire will have.
@@ -383,11 +473,14 @@ namespace gabe {
              * 
              * A variable can have any value the user wants, as long as it have enough wires to assign values to.
              * Whenever it is needed to have a variable with a constant value, this function should be used.
-             * Once called, each variable wire will be filled as the "zero_wire" or as the "one_wire", depending if the value bit is 0 or 1, respectively.
+             * Once called, each variable wire will be filled as the "zero_wire" or as the "one_wire", depending if the value bit
+             * is 0 or 1, respectively.
              * 
-             * This function supports a 64 bit value as input, but the variable does not have to have 64 bits. Only the least signiticant bits is taken into account.
+             * This function supports a 64 bit value as input, but the variable does not have to have 64 bits. Only the least
+             * signiticant bits is taken into account.
              *
-             * @note This function should only be used after starting the circuit writing (after using the start() method). Otherwise, this function will not behave as expected.
+             * @note This function should only be used after starting the circuit writing (after using the start() method).
+             * Otherwise, this function will not behave as expected.
              * 
              * @param variable Variable reference to assign a value to.
              * @param value Value that the variable will have.
@@ -399,8 +492,10 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function shifts the variable wires towards the left. This means that each wire is increasing its significance by X, being X the amount of bits to shift.
-             * The next wires that appear on the right are automatically assigned to have a wire value of 0 (zero_wire of the circuit).
+             * This function shifts the variable wires towards the left. This means that each wire is increasing its significance
+             * by X, being X the amount of bits to shift.
+             * The next wires that appear on the right are automatically assigned to have a wire value of 0 (zero_wire of the
+             * circuit).
              * 
              * The following example shows the expected behavior of the function:
              * 
@@ -422,8 +517,10 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function shifts the variable wires towards the left. This means that each wire is increasing its significance by X, being X the amount of bits to shift.
-             * The next wires that appear on the right are automatically assigned to have a wire value of 0 (zero_wire of the circuit).
+             * This function shifts the variable wires towards the left. This means that each wire is increasing its significance
+             * by X, being X the amount of bits to shift.
+             * The next wires that appear on the right are automatically assigned to have a wire value of 0 (zero_wire of the
+             * circuit).
              * 
              * The following example shows the expected behavior of the function:
              * 
@@ -446,8 +543,10 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function shifts the variable wires towards the right. This means that each wire is decreasing its significance by X, being X the amount of bits to shift.
-             * The next wires that appear on the left are automatically assigned to have a wire value of 0 (zero_wire of the circuit).
+             * This function shifts the variable wires towards the right. This means that each wire is decreasing its significance
+             * by X, being X the amount of bits to shift.
+             * The next wires that appear on the left are automatically assigned to have a wire value of 0 (zero_wire of the
+             * circuit).
              * 
              * The following example shows the expected behavior of the function:
              * 
@@ -469,8 +568,10 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function shifts the variable wires towards the right. This means that each wire is decreasing its significance by X, being X the amount of bits to shift.
-             * The next wires that appear on the left are automatically assigned to have a wire value of 0 (zero_wire of the circuit).
+             * This function shifts the variable wires towards the right. This means that each wire is decreasing its significance
+             * by X, being X the amount of bits to shift.
+             * The next wires that appear on the left are automatically assigned to have a wire value of 0 (zero_wire of the
+             * circuit).
              * 
              * The following example shows the expected behavior of the function:
              * 
@@ -493,7 +594,10 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function rotates the variable wires towards the left. This is similar to the shift left method except that the most left wires will be placed back on the right of the variable. This means that, for each rotated bit, every wire is increasing its significance except the most significant one, which is rotated back to the right, being the least significat wire now.
+             * This function rotates the variable wires towards the left. This is similar to the shift left method except that the
+             * most left wires will be placed back on the right of the variable. This means that, for each rotated bit, every wire
+             * is increasing its significance except the most significant one, which is rotated back to the right, being the least
+             * significat wire now.
              * 
              * The following example shows the expected behavior of the function:
              * 
@@ -515,7 +619,10 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function rotates the variable wires towards the left. This is similar to the shift left method except that the most left wires will be placed back on the right of the variable. This means that, for each rotated bit, every wire is increasing its significance except the most significant one, which is rotated back to the right, being the least significat wire now.
+             * This function rotates the variable wires towards the left. This is similar to the shift left method except that the
+             * most left wires will be placed back on the right of the variable. This means that, for each rotated bit, every wire
+             * is increasing its significance except the most significant one, which is rotated back to the right, being the least
+             * significat wire now.
              * 
              * The following example shows the expected behavior of the function:
              * 
@@ -538,7 +645,10 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function rotates the variable wires towards the right. This is similar to the shift right method except that the most right wires will be placed back on the left of the variable. This means that, for each rotated bit, every wire is decreasing its significance except the least significant one, which is rotated back to the left, being the most significat wire now.
+             * This function rotates the variable wires towards the right. This is similar to the shift right method except that
+             * the most right wires will be placed back on the left of the variable. This means that, for each rotated bit, every
+             * wire is decreasing its significance except the least significant one, which is rotated back to the left, being the
+             * most significat wire now.
              * 
              * The following example shows the expected behavior of the function:
              * 
@@ -560,7 +670,10 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function rotates the variable wires towards the right. This is similar to the shift right method except that the most right wires will be placed back on the left of the variable. This means that, for each rotated bit, every wire is decreasing its significance except the least significant one, which is rotated back to the left, being the most significat wire now.
+             * This function rotates the variable wires towards the right. This is similar to the shift right method except that
+             * the most right wires will be placed back on the left of the variable. This means that, for each rotated bit, every
+             * wire is decreasing its significance except the least significant one, which is rotated back to the left, being the
+             * most significat wire now.
              * 
              * The following example shows the expected behavior of the function:
              * 
@@ -583,7 +696,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function flips the variable wires. The flipping behavior can be compared to a mirror, i.e., the most left wires will be placed as the most right wires and vice-versa.
+             * This function flips the variable wires. The flipping behavior can be compared to a mirror, i.e., the most left
+             * wires will be placed as the most right wires and vice-versa.
              * 
              * The following example shows the expected behavior of the function:
              * 
@@ -604,7 +718,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function flips the variable wires. The flipping behavior can be compared to a mirror, i.e., the most left wires will be placed as the most right wires and vice-versa.
+             * This function flips the variable wires. The flipping behavior can be compared to a mirror, i.e., the most left
+             * wires will be placed as the most right wires and vice-versa.
              * 
              * The following example shows the expected behavior of the function:
              * 
@@ -626,7 +741,9 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function performs the 2's complement to the input variable. This operation is used to changed the sign of the variable, i.e, change -X to X and vice-versa. To perform this operation, all the wires of the variable have to be negated (1's complement), and then add the varaible 1 to that result.
+             * This function performs the 2's complement to the input variable. This operation is used to changed the sign of the
+             * variable, i.e, change -X to X and vice-versa. To perform this operation, all the wires of the variable have to be
+             * negated (1's complement), and then add the varaible 1 to that result.
              * 
              * The following example shows the expected behavior of the function:
              * 
@@ -647,7 +764,9 @@ namespace gabe {
              * 
              * -----
              * 
-             * This function performs the 2's complement to the input variable. This operation is used to changed the sign of the variable, i.e, change -X to X and vice-versa. To perform this operation, all the wires of the variable have to be negated (1's complement), and then add the varaible 1 to that result.
+             * This function performs the 2's complement to the input variable. This operation is used to changed the sign of the
+             * variable, i.e, change -X to X and vice-versa. To perform this operation, all the wires of the variable have to be
+             * negated (1's complement), and then add the varaible 1 to that result.
              * 
              * The following example shows the expected behavior of the function:
              * 
@@ -834,7 +953,8 @@ namespace gabe {
              * | 0       | 1       | 0          |
              * | 0       | 1       | 1          |
              * 
-             * However, the XNOR is not a basic logic gate. It is, in fact, an operation that makes use of two basic logic gate, i.e an XOR gate followed by an INV gate.
+             * However, the XNOR is not a basic logic gate. It is, in fact, an operation that makes use of two basic logic gate,
+             * i.e an XOR gate followed by an INV gate.
              * This method exists just to agile the need to use these two operations in a single method call.
              * 
              * @param in_a Input wire \f$A\f$.
@@ -857,7 +977,8 @@ namespace gabe {
              * | 0       | 1       | 0          |
              * | 0       | 1       | 1          |
              *
-             * However, the XNOR is not a basic logic gate. It is, in fact, an operation that makes use of two basic logic gate, i.e an XOR gate followed by an INV gate.
+             * However, the XNOR is not a basic logic gate. It is, in fact, an operation that makes use of two basic logic gate,
+             * i.e an XOR gate followed by an INV gate.
              * This method exists just to agile the need to use these two operations in a single method call.
              *
              * @param in_a Input variable \f$A\f$.
@@ -880,7 +1001,8 @@ namespace gabe {
              * | 0       | 1       | 1          |
              * | 0       | 1       | 0          |
              * 
-             * However, the NAND is not a basic logic gate. It is, in fact, an operation that makes use of two basic logic gate, i.e an AND gate followed by an INV gate.
+             * However, the NAND is not a basic logic gate. It is, in fact, an operation that makes use of two basic logic gate,
+             * i.e an AND gate followed by an INV gate.
              * This method exists just to agile the need to use these two operations in a single method call.
              * 
              * @param in_a Input wire \f$A\f$.
@@ -903,7 +1025,8 @@ namespace gabe {
              * | 0       | 1       | 1          |
              * | 0       | 1       | 0          |
              * 
-             * However, the NAND is not a basic logic gate. It is, in fact, an operation that makes use of two basic logic gate, i.e an AND gate followed by an INV gate.
+             * However, the NAND is not a basic logic gate. It is, in fact, an operation that makes use of two basic logic gate,
+             * i.e an AND gate followed by an INV gate.
              * This method exists just to agile the need to use these two operations in a single method call.
              * 
              * @param in_a Input wire \f$A\f$.
@@ -926,7 +1049,8 @@ namespace gabe {
              * | 0       | 1       | 0          |
              * | 0       | 1       | 0          |
              * 
-             * However, the NOR is not a basic logic gate. It is, in fact, an operation that makes use of two basic logic gate, i.e an OR gate followed by an INV gate.
+             * However, the NOR is not a basic logic gate. It is, in fact, an operation that makes use of two basic logic gate,
+             * i.e an OR gate followed by an INV gate.
              * This method exists just to agile the need to use these two operations in a single method call.
              * 
              * @param in_a Input wire \f$A\f$.
@@ -949,7 +1073,8 @@ namespace gabe {
              * | 0       | 1       | 0          |
              * | 0       | 1       | 0          |
              * 
-             * However, the NOR is not a basic logic gate. It is, in fact, an operation that makes use of two basic logic gate, i.e an OR gate followed by an INV gate.
+             * However, the NOR is not a basic logic gate. It is, in fact, an operation that makes use of two basic logic gate,
+             * i.e an OR gate followed by an INV gate.
              * This method exists just to agile the need to use these two operations in a single method call.
              * 
              * @param in_a Input wire \f$A\f$.
@@ -965,11 +1090,12 @@ namespace gabe {
              * 
              * -----
              * 
-             * @details Addition is one of the most basic operations performed and it is referred as a binary adder in logic circuits.
-             * There are two adder types: half adder, and full adder. This function is developed to target a binary addition that uses
-             * a full adder. A full adder is a combinational logic circuit that adds two binary input bits (\f$A\f$ and \f$B\f$), and a
-             * carry bit (\f$C_{in}\f$), resulting in a sum bit (\f$Sum\f$) and another carry bit (\f$C_{out}\f$). \f$C_{in}\f$ and
-             * \f$C_{out}\f$ are just the carry bits from the previous and to the next operation, respectively.
+             * @details Addition is one of the most basic operations performed and it is referred as a binary adder in logic
+             * circuits. There are two adder types: half adder, and full adder. This function is developed to target a binary
+             * addition that uses a full adder. A full adder is a combinational logic circuit that adds two binary input bits
+             * (\f$A\f$ and \f$B\f$), and a carry bit (\f$C_{in}\f$), resulting in a sum bit (\f$Sum\f$) and another carry bit
+             * (\f$C_{out}\f$). \f$C_{in}\f$ and \f$C_{out}\f$ are just the carry bits from the previous and to the next
+             * operation, respectively.
              * 
              * A logical adder is variable sign independent, which means it works the same way for signed and unsigned variables.
              * 
@@ -986,8 +1112,8 @@ namespace gabe {
              * | 1       | 1       | 0            | 0         | 1             |
              * | 1       | 1       | 1            | 1         | 1             |
              * 
-             * The truth table translates a logical expression for both \f$Sum\f$ and \f$C_{out}\f$ outputs. These expressions can be
-             * further simplified, as follows:
+             * The truth table translates a logical expression for both \f$Sum\f$ and \f$C_{out}\f$ outputs. These expressions can
+             * be further simplified, as follows:
              * 
              * \begin{align*}
              *      Sum &= \overline{A}.\overline{B}.C_{in} + \overline{A}.B.\overline{C_{in}} + A.\overline{B}.\overline{C_{in}} + A.B.C_{in}\\\
@@ -1013,12 +1139,15 @@ namespace gabe {
              * 
              * -----
              * 
-             * @details Subtraction is one of the most basic operations performed and it is referred as a binary subtractor in logic circuits.
-             * There are two subtractor types: half subtractor, and full subtractor. This function is developed to target a binary subtraction that uses
-             * a full subtractor. A full subtractor is a combinational logic circuit that makes the difference between two binary input bits (\f$A\f$, minuend, and \f$B\f$, subtrahend), taken into account the borrow bit (\f$B_{in}\f$), resulting in a sub bit (\f$Sub\f$) and another borrow bit (\f$B_{out}\f$). \f$B_{in}\f$ and
-             * \f$B_{out}\f$ are just the borrow bits from the previous and to the next operation, respectively.
+             * @details Subtraction is one of the most basic operations performed and it is referred as a binary subtractor in
+             * logic circuits. There are two subtractor types: half subtractor, and full subtractor. This function is developed to
+             * target a binary subtraction that uses a full subtractor. A full subtractor is a combinational logic circuit that
+             * makes the difference between two binary input bits (\f$A\f$, minuend, and \f$B\f$, subtrahend), taken into account
+             * the borrow bit (\f$B_{in}\f$), resulting in a sub bit (\f$Sub\f$) and another borrow bit (\f$B_{out}\f$).
+             * \f$B_{in}\f$ and \f$B_{out}\f$ are just the borrow bits from the previous and to the next operation, respectively.
              * 
-             * A logical subtractor is variable sign independent, which means it works the same way for signed and unsigned variables.
+             * A logical subtractor is variable sign independent, which means it works the same way for signed and unsigned
+             * variables.
              * 
              * A full subtractor can be represented has the following truth table:
              * 
@@ -1033,8 +1162,8 @@ namespace gabe {
              * | 1       | 1       | 0            | 0         | 0             |
              * | 1       | 1       | 1            | 1         | 1             |
              * 
-             * The truth table translates a logical expression for both \f$Sub\f$ and \f$B_{out}\f$ outputs. These expressions can be
-             * further simplified, as follows:
+             * The truth table translates a logical expression for both \f$Sub\f$ and \f$B_{out}\f$ outputs. These expressions can
+             * be further simplified, as follows:
              * 
              * \begin{align*}
              *      Sub &= \overline{A}.\overline{B}.B_{in} + \overline{A}.B.\overline{B_{in}} + A.\overline{B}.\overline{B_{in}} + A.B.B_{in}\\\
@@ -1060,9 +1189,12 @@ namespace gabe {
              * 
              * -----
              * 
-             * @details Binary multiplication, also known as array multiplier, is a digital combinational circuit used for multiplying two binary numbers.
-             * The circuit creation for a binary multiplication is dependent on the sign of the input variables. As such, this function is directed to the multiplication between two unsigned variables, thus the "u" in the function name.
-             * An unsigned binary multiplication operation can be described by several addition operations by emplying an array fill of full adders and half adders.
+             * @details Binary multiplication, also known as array multiplier, is a digital combinational circuit used for
+             * multiplying two binary numbers.
+             * The circuit creation for a binary multiplication is dependent on the sign of the input variables. As such, this
+             * function is directed to the multiplication between two unsigned variables, thus the "u" in the function name.
+             * An unsigned binary multiplication operation can be described by several addition operations by emplying an array
+             * fill of full adders and half adders.
              * 
              * For better understanding, take a look at the following example: 
              * 
@@ -1089,9 +1221,12 @@ namespace gabe {
              * 
              * -----
              * 
-             * @details Binary multiplication, also known as array multiplier, is a digital combinational circuit used for multiplying two binary numbers.
-             * The circuit creation for a binary multiplication is dependent on the sign of the input variables. As such, this function is directed to the multiplication between two signed variables, thus the "s" in the function name.
-             * A signed binary multiplication operation can be described by several addition operations by emplying an array fill of full adders and half adders, followed by a single subtraction operation.
+             * @details Binary multiplication, also known as array multiplier, is a digital combinational circuit used for
+             * multiplying two binary numbers.
+             * The circuit creation for a binary multiplication is dependent on the sign of the input variables. As such, this
+             * function is directed to the multiplication between two signed variables, thus the "s" in the function name.
+             * A signed binary multiplication operation can be described by several addition operations by emplying an array fill
+             * of full adders and half adders, followed by a single subtraction operation.
              *
              * For better understanding, take a look at the following example: 
              * 
@@ -1107,7 +1242,8 @@ namespace gabe {
              *  11001111 (-49) <-- Multiplication result
              * ```
              * 
-             * Alternatively, the binary multiplication of signed variables can also be described by a series of only addition operations, if a tweak is made.
+             * Alternatively, the binary multiplication of signed variables can also be described by a series of only addition
+             * operations, if a tweak is made.
              * 
              * ```
              *       0111 (7)   <-- Input variable A
@@ -1129,13 +1265,17 @@ namespace gabe {
             void multiply_s(const Variable& in_a, const Variable& in_b, Variable& out);
 
             /**
-             * @brief Binary division between two unsigned variables, resulting in a two new unsigned variables (quotient and remainder).
+             * @brief Binary division between two unsigned variables, resulting in a two new unsigned variables (quotient and
+             * remainder).
              * 
              * -----
              * 
-             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains).
-             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function is directed to the division between two unsigned variables, thus the "u" in the function name.
-             * An unsigned binary division operation can be represented by the cycle of successive compare, shift, and subtract operations.
+             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two
+             * outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains).
+             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function
+             * is directed to the division between two unsigned variables, thus the "u" in the function name.
+             * An unsigned binary division operation can be represented by the cycle of successive compare, shift, and subtract
+             * operations.
              * 
              * For better understanding, take a look at the following example: 
              * 
@@ -1177,9 +1317,13 @@ namespace gabe {
              * 
              * -----
              * 
-             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains). However, this function is designed to only return the quotient value, ignoring the remainder.
-             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function is directed to the division between two unsigned variables, thus the "u" in the function name.
-             * An unsigned binary division operation can be represented by the cycle of successive compare, shift, and subtract operations.
+             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two
+             * outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains).
+             * However, this function is designed to only return the quotient value, ignoring the remainder.
+             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function
+             * is directed to the division between two unsigned variables, thus the "u" in the function name.
+             * An unsigned binary division operation can be represented by the cycle of successive compare, shift, and subtract
+             * operations.
              * 
              * For better understanding, take a look at the following example: 
              * 
@@ -1220,9 +1364,13 @@ namespace gabe {
              * 
              * -----
              * 
-             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains). However, this function is designed to only return the remainder value, ignoring the quotient.
-             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function is directed to the division between two unsigned variables, thus the "u" in the function name.
-             * An unsigned binary division operation can be represented by the cycle of successive compare, shift, and subtract operations.
+             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two
+             * outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains).
+             * However, this function is designed to only return the remainder value, ignoring the quotient.
+             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function
+             * is directed to the division between two unsigned variables, thus the "u" in the function name.
+             * An unsigned binary division operation can be represented by the cycle of successive compare, shift, and subtract
+             * operations.
              * 
              * For better understanding, take a look at the following example: 
              * 
@@ -1259,15 +1407,21 @@ namespace gabe {
             void divide_u_remainder(const Variable& in_a, const Variable& in_b, Variable& out_r);
 
             /**
-             * @brief Binary division between two signed variables, resulting in a two new signed variables (quotient and remainder).
+             * @brief Binary division between two signed variables, resulting in a two new signed variables (quotient and
+             * remainder).
              * 
              * -----
              * 
-             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains).
-             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function is directed to the division between two signed variables, thus the "s" in the function name.
-             * A signed binary division operation can be represented by the cycle of successive compare, shift, and subtract operations.
+             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two
+             * outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains).
+             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function
+             * is directed to the division between two signed variables, thus the "s" in the function name.
+             * A signed binary division operation can be represented by the cycle of successive compare, shift, and subtract
+             * operations.
              * 
-             * A signed binary division is similar to the unsigned binary division, with the addition of a "pre-processing" step to the inputs, where these variables are manipulated acoordingly to their signs, and a "post-processing" step to the quotient output, where the input signs manipulate it.
+             * A signed binary division is similar to the unsigned binary division, with the addition of a "pre-processing" step
+             * to the inputs, where these variables are manipulated acoordingly to their signs, and a "post-processing" step to
+             * the quotient output, where the input signs manipulate it.
              * 
              * For better understanding of the variable manipulation, take a look at the following table:
              * 
@@ -1278,8 +1432,10 @@ namespace gabe {
              * | 1            | 0            | 2's \f$A\f$ | \f$B\f$     | 2's \f$Q\f$ |
              * | 1            | 1            | 2's \f$A\f$ | 2's \f$B\f$ | \f$Q\f$     |
              * 
-             * With the dividend and divisor variables defined, they can be used in an unsigned binary division, since they were manipulated to setup the conditions to allow the unsigned operation.
-             * Since the output comes from the unsigned binary operation, it also has to be manipulated in case its result is suppose to be negative. This only happens when the operation is between two signed variables with different signs.
+             * With the dividend and divisor variables defined, they can be used in an unsigned binary division, since they were
+             * manipulated to setup the conditions to allow the unsigned operation.
+             * Since the output comes from the unsigned binary operation, it also has to be manipulated in case its result is
+             * suppose to be negative. This only happens when the operation is between two signed variables with different signs.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1293,11 +1449,16 @@ namespace gabe {
              * 
              * -----
              * 
-             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains).
-             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function is directed to the division between two signed variables, thus the "s" in the function name.
-             * A signed binary division operation can be represented by the cycle of successive compare, shift, and subtract operations.
+             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two
+             * outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains).
+             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function
+             * is directed to the division between two signed variables, thus the "s" in the function name.
+             * A signed binary division operation can be represented by the cycle of successive compare, shift, and subtract
+             * operations.
              * 
-             * A signed binary division is similar to the unsigned binary division, with the addition of a "pre-processing" step to the inputs, where these variables are manipulated acoordingly to their signs, and a "post-processing" step to the quotient output, where the input signs manipulate it.
+             * A signed binary division is similar to the unsigned binary division, with the addition of a "pre-processing" step
+             * to the inputs, where these variables are manipulated acoordingly to their signs, and a "post-processing" step to
+             * the quotient output, where the input signs manipulate it.
              * 
              * For better understanding of the variable manipulation, take a look at the following table:
              * 
@@ -1308,8 +1469,10 @@ namespace gabe {
              * | 1            | 0            | 2's \f$A\f$ | \f$B\f$     | 2's \f$Q\f$ |
              * | 1            | 1            | 2's \f$A\f$ | 2's \f$B\f$ | \f$Q\f$     |
              * 
-             * With the dividend and divisor variables defined, they can be used in an unsigned binary division, since they were manipulated to setup the conditions to allow the unsigned operation.
-             * Since the output comes from the unsigned binary operation, it also has to be manipulated in case its result is suppose to be negative. This only happens when the operation is between two signed variables with different signs.
+             * With the dividend and divisor variables defined, they can be used in an unsigned binary division, since they were
+             * manipulated to setup the conditions to allow the unsigned operation.
+             * Since the output comes from the unsigned binary operation, it also has to be manipulated in case its result is
+             * suppose to be negative. This only happens when the operation is between two signed variables with different signs.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1322,9 +1485,12 @@ namespace gabe {
              * 
              * -----
              * 
-             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains).
-             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function is directed to the division between two signed variables, thus the "s" in the function name.
-             * A signed binary division operation can be represented by the cycle of successive compare, shift, and subtract operations.
+             * @details Binary division is a digital combinational circuit used to divide two binary numbers. In a division, two
+             * outputs are expected, the quotient (division result), and the remainder (what cannot be divided and remains).
+             * The circuit creation for a binary division is dependent on the sign of the input variables. As such, this function
+             * is directed to the division between two signed variables, thus the "s" in the function name.
+             * A signed binary division operation can be represented by the cycle of successive compare, shift, and subtract
+             * operations.
              * 
              * For better understanding of the variable manipulation, take a look at the following table:
              * 
@@ -1335,8 +1501,10 @@ namespace gabe {
              * | 1            | 0            | 2's \f$A\f$ | \f$B\f$     | 2's \f$Q\f$ |
              * | 1            | 1            | 2's \f$A\f$ | 2's \f$B\f$ | \f$Q\f$     |
              * 
-             * With the dividend and divisor variables defined, they can be used in an unsigned binary division, since they were manipulated to setup the conditions to allow the unsigned operation.
-             * Since this function only targets to get the remainder result, the very last step of manipulating the quotient variable is not needed.
+             * With the dividend and divisor variables defined, they can be used in an unsigned binary division, since they were
+             * manipulated to setup the conditions to allow the unsigned operation.
+             * Since this function only targets to get the remainder result, the very last step of manipulating the quotient
+             * variable is not needed.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1351,9 +1519,12 @@ namespace gabe {
              * 
              * -----
              * 
-             * A multiplexer is a combinational circuit which can have several inputs but only a single output. This output is one of the inputs, and its selection is decided by control(s)/selection(s) inputs.
+             * A multiplexer is a combinational circuit which can have several inputs but only a single output. This output is one
+             * of the inputs, and its selection is decided by control(s)/selection(s) inputs.
              * 
-             * A multiplexer can be designed to have as many inputs as pleased, as long as there are enough control/selection bits combinations. In this case, this method was designed to be a 2x1 multiplexer, which means that it uses a single control bit to manage which of the two inputs to output.
+             * A multiplexer can be designed to have as many inputs as pleased, as long as there are enough control/selection bits
+             * combinations. In this case, this method was designed to be a 2x1 multiplexer, which means that it uses a single
+             * control bit to manage which of the two inputs to output.
              * 
              * This method has the following truth table:
              * 
@@ -1424,7 +1595,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a greater operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * The circuit creation for a greater operation is dependent on the sign of the input variables. As such, this
+             * function is directed to an operation between two unsigned variables, thus the "u" in the function name.
              * 
              * The greater binary operation for unsigned variables is represented by the following truth table:
              * 
@@ -1437,7 +1609,8 @@ namespace gabe {
              * 
              * From the truth table, we can conclude that A is only bigger than B if: \f$A.\overline{B}\f$
              * 
-             * However, a greater binary operation has different weights for all the bits in a variable, i.e, the more significant the bit is, the more weight it has in the operation.
+             * However, a greater binary operation has different weights for all the bits in a variable, i.e, the more significant
+             * the bit is, the more weight it has in the operation.
              * For example, in hypothetical terms, we are comparing 2 variables (A and B) both with 3 bits, A is greater than B if:
              * ( A2 > B2 ) OR ( A2 = B2 AND A1 > B1 ) OR (A2 = B2 AND A1 = B1 AND A0 > B0 )
              * 
@@ -1463,7 +1636,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a greater operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * The circuit creation for a greater operation is dependent on the sign of the input variables. As such, this
+             * function is directed to an operation between two unsigned variables, thus the "u" in the function name.
              * 
              * The greater binary operation for unsigned variables is represented by the following truth table:
              * 
@@ -1476,7 +1650,8 @@ namespace gabe {
              * 
              * From the truth table, we can conclude that A is only bigger than B if: \f$A.\overline{B}\f$
              * 
-             * However, a greater binary operation has different weights for all the bits in a variable, i.e, the more significant the bit is, the more weight it has in the operation.
+             * However, a greater binary operation has different weights for all the bits in a variable, i.e, the more significant
+             * the bit is, the more weight it has in the operation.
              * For example, in hypothetical terms, we are comparing 2 variables (A and B) both with 3 bits, A is greater than B if:
              * ( A2 > B2 ) OR ( A2 = B2 AND A1 > B1 ) OR (A2 = B2 AND A1 = B1 AND A0 > B0 )
              * 
@@ -1502,7 +1677,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a greater operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * The circuit creation for a greater operation is dependent on the sign of the input variables. As such, this
+             * function is directed to an operation between two signed variables, thus the "s" in the function name.
              * 
              * The greater binary operation for signed variables is represented by the following truth table:
              * 
@@ -1515,7 +1691,8 @@ namespace gabe {
              * 
              * From the truth table, we can conclude that A is only bigger than B if: \f$\overline{A}.B\f$
              * 
-             * However, a greater binary operation has different weights for all the bits in a variable, i.e, the more significant the bit is, the more weight it has in the operation.
+             * However, a greater binary operation has different weights for all the bits in a variable, i.e, the more significant
+             * the bit is, the more weight it has in the operation.
              * For example, in hypothetical terms, we are comparing 2 variables (A and B) both with 3 bits, A is greater than B if:
              * ( A2 < B2 ) OR ( A2 = B2 AND A1 > B1 ) OR (A2 = B2 AND A1 = B1 AND A0 > B0 )
              * 
@@ -1530,7 +1707,8 @@ namespace gabe {
              * 
              * Where \f$n\f$ is the number of bits.
              * 
-             * If we take a look at a greater unsigned operation, the signed operation has exactly the same expression, expect the comparison between the most significant bits, which represent the sign.
+             * If we take a look at a greater unsigned operation, the signed operation has exactly the same expression, expect the
+             * comparison between the most significant bits, which represent the sign.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1543,7 +1721,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a greater operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * The circuit creation for a greater operation is dependent on the sign of the input variables. As such, this
+             * function is directed to an operation between two signed variables, thus the "s" in the function name.
              * 
              * The greater binary operation for signed variables is represented by the following truth table:
              * 
@@ -1556,7 +1735,8 @@ namespace gabe {
              * 
              * From the truth table, we can conclude that A is only bigger than B if: \f$\overline{A}.B\f$
              * 
-             * However, a greater binary operation has different weights for all the bits in a variable, i.e, the more significant the bit is, the more weight it has in the operation.
+             * However, a greater binary operation has different weights for all the bits in a variable, i.e, the more significant
+             * the bit is, the more weight it has in the operation.
              * For example, in hypothetical terms, we are comparing 2 variables (A and B) both with 3 bits, A is greater than B if:
              * ( A2 < B2 ) OR ( A2 = B2 AND A1 > B1 ) OR (A2 = B2 AND A1 = B1 AND A0 > B0 )
              * 
@@ -1571,7 +1751,8 @@ namespace gabe {
              * 
              * Where \f$n\f$ is the number of bits.
              * 
-             * If we take a look at a greater unsigned operation, the signed operation has exactly the same expression, expect the comparison between the most significant bits, which represent the sign.
+             * If we take a look at a greater unsigned operation, the signed operation has exactly the same expression, expect the
+             * comparison between the most significant bits, which represent the sign.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1584,7 +1765,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a smaller operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * The circuit creation for a smaller operation is dependent on the sign of the input variables. As such, this
+             * function is directed to an operation between two unsigned variables, thus the "u" in the function name.
              * 
              * The smaller binary operation for unsigned variables is represented by the following truth table:
              * 
@@ -1597,7 +1779,8 @@ namespace gabe {
              * 
              * From the truth table, we can conclude that A is only smaller than B if: \f$\overline{A}.B\f$
              * 
-             * However, a smaller binary operation has different weights for all the bits in a variable, i.e, the more significant the bit is, the more weight it has in the operation.
+             * However, a smaller binary operation has different weights for all the bits in a variable, i.e, the more significant
+             * the bit is, the more weight it has in the operation.
              * For example, in hypothetical terms, we are comparing 2 variables (A and B) both with 3 bits, A is smaller than B if:
              * ( A2 < B2 ) OR ( A2 = B2 AND A1 < B1 ) OR (A2 = B2 AND A1 = B1 AND A0 < B0 )
              * 
@@ -1623,7 +1806,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a smaller operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * The circuit creation for a smaller operation is dependent on the sign of the input variables. As such, this
+             * function is directed to an operation between two unsigned variables, thus the "u" in the function name.
              * 
              * The smaller binary operation for unsigned variables is represented by the following truth table:
              * 
@@ -1636,7 +1820,8 @@ namespace gabe {
              * 
              * From the truth table, we can conclude that A is only smaller than B if: \f$\overline{A}.B\f$
              * 
-             * However, a smaller binary operation has different weights for all the bits in a variable, i.e, the more significant the bit is, the more weight it has in the operation.
+             * However, a smaller binary operation has different weights for all the bits in a variable, i.e, the more significant
+             * the bit is, the more weight it has in the operation.
              * For example, in hypothetical terms, we are comparing 2 variables (A and B) both with 3 bits, A is smaller than B if:
              * ( A2 < B2 ) OR ( A2 = B2 AND A1 < B1 ) OR (A2 = B2 AND A1 = B1 AND A0 < B0 )
              * 
@@ -1662,7 +1847,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a smaller operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * The circuit creation for a smaller operation is dependent on the sign of the input variables. As such, this
+             * function is directed to an operation between two signed variables, thus the "s" in the function name.
              * 
              * The smaller binary operation for signed variables is represented by the following truth table:
              * 
@@ -1675,7 +1861,8 @@ namespace gabe {
              * 
              * From the truth table, we can conclude that A is only smaller than B if: \f$A.\overline{B}\f$
              * 
-             * However, a smaller binary operation has different weights for all the bits in a variable, i.e, the more significant the bit is, the more weight it has in the operation.
+             * However, a smaller binary operation has different weights for all the bits in a variable, i.e, the more significant
+             * the bit is, the more weight it has in the operation.
              * For example, in hypothetical terms, we are comparing 2 variables (A and B) both with 3 bits, A is smaller than B if:
              * ( A2 > B2 ) OR ( A2 = B2 AND A1 < B1 ) OR (A2 = B2 AND A1 = B1 AND A0 < B0 )
              * 
@@ -1690,7 +1877,8 @@ namespace gabe {
              * 
              * Where \f$n\f$ is the number of bits.
              * 
-             * If we take a look at a smaller unsigned operation, the signed operation has exactly the same expression, expect the comparison between the most significant bits, which represent the sign.
+             * If we take a look at a smaller unsigned operation, the signed operation has exactly the same expression, expect the
+             * comparison between the most significant bits, which represent the sign.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1703,7 +1891,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a smaller operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * The circuit creation for a smaller operation is dependent on the sign of the input variables. As such, this
+             * function is directed to an operation between two signed variables, thus the "s" in the function name.
              * 
              * The smaller binary operation for signed variables is represented by the following truth table:
              * 
@@ -1716,7 +1905,8 @@ namespace gabe {
              * 
              * From the truth table, we can conclude that A is only smaller than B if: \f$A.\overline{B}\f$
              * 
-             * However, a smaller binary operation has different weights for all the bits in a variable, i.e, the more significant the bit is, the more weight it has in the operation.
+             * However, a smaller binary operation has different weights for all the bits in a variable, i.e, the more significant
+             * the bit is, the more weight it has in the operation.
              * For example, in hypothetical terms, we are comparing 2 variables (A and B) both with 3 bits, A is smaller than B if:
              * ( A2 > B2 ) OR ( A2 = B2 AND A1 < B1 ) OR (A2 = B2 AND A1 = B1 AND A0 < B0 )
              * 
@@ -1731,7 +1921,8 @@ namespace gabe {
              * 
              * Where \f$n\f$ is the number of bits.
              * 
-             * If we take a look at a smaller unsigned operation, the signed operation has exactly the same expression, expect the comparison between the most significant bits, which represent the sign.
+             * If we take a look at a smaller unsigned operation, the signed operation has exactly the same expression, expect the
+             * comparison between the most significant bits, which represent the sign.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1744,7 +1935,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a greater or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * The circuit creation for a greater or equal operation is dependent on the sign of the input variables. As such,
+             * this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
              * 
              * The greater or equal binary operation for unsigned variables is represented by the following truth table:
              * 
@@ -1755,7 +1947,8 @@ namespace gabe {
              * | 1       | 0       | 1          |
              * | 1       | 1       | 1          |
              * 
-             * We can see that this truth table is a "smaller" unsigned operation truth table negated. As so, we can conclude that we can achieve the greater or equal operation by negating the smaller operation result.
+             * We can see that this truth table is a "smaller" unsigned operation truth table negated. As so, we can conclude that
+             * we can achieve the greater or equal operation by negating the smaller operation result.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1768,7 +1961,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a greater or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * The circuit creation for a greater or equal operation is dependent on the sign of the input variables. As such,
+             * this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
              * 
              * The greater or equal binary operation for unsigned variables is represented by the following truth table:
              * 
@@ -1779,7 +1973,8 @@ namespace gabe {
              * | 1       | 0       | 1          |
              * | 1       | 1       | 1          |
              * 
-             * We can see that this truth table is a "smaller" unsigned operation truth table negated. As so, we can conclude that we can achieve the greater or equal operation by negating the smaller operation result.
+             * We can see that this truth table is a "smaller" unsigned operation truth table negated. As so, we can conclude that
+             * we can achieve the greater or equal operation by negating the smaller operation result.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1792,7 +1987,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a greater or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * The circuit creation for a greater or equal operation is dependent on the sign of the input variables. As such,
+             * this function is directed to an operation between two signed variables, thus the "s" in the function name.
              * 
              * The greater or equal binary operation for signed variables is represented by the following truth table:
              * 
@@ -1803,7 +1999,8 @@ namespace gabe {
              * | 1       | 0       | 0          |
              * | 1       | 1       | 1          |
              * 
-             * We can see that this truth table is a "smaller" signed operation truth table negated. As so, we can conclude that we can achieve the greater or equal operation by negating the smaller operation result.
+             * We can see that this truth table is a "smaller" signed operation truth table negated. As so, we can conclude that
+             * we can achieve the greater or equal operation by negating the smaller operation result.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1816,7 +2013,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a greater or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * The circuit creation for a greater or equal operation is dependent on the sign of the input variables. As such,
+             * this function is directed to an operation between two signed variables, thus the "s" in the function name.
              * 
              * The greater or equal binary operation for signed variables is represented by the following truth table:
              * 
@@ -1827,7 +2025,8 @@ namespace gabe {
              * | 1       | 0       | 0          |
              * | 1       | 1       | 1          |
              * 
-             * We can see that this truth table is a "smaller" signed operation truth table negated. As so, we can conclude that we can achieve the greater or equal operation by negating the smaller operation result.
+             * We can see that this truth table is a "smaller" signed operation truth table negated. As so, we can conclude that
+             * we can achieve the greater or equal operation by negating the smaller operation result.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1840,7 +2039,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a smaller or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * The circuit creation for a smaller or equal operation is dependent on the sign of the input variables. As such,
+             * this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
              * 
              * The smaller or equal binary operation for unsigned variables is represented by the following truth table:
              * 
@@ -1851,7 +2051,8 @@ namespace gabe {
              * | 1       | 0       | 0          |
              * | 1       | 1       | 1          |
              * 
-             * We can see that this truth table is a "greater" unsigned operation truth table negated. As so, we can conclude that we can achieve the smaller or equal operation by negating the greater operation result.
+             * We can see that this truth table is a "greater" unsigned operation truth table negated. As so, we can conclude that
+             * we can achieve the smaller or equal operation by negating the greater operation result.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1864,7 +2065,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a smaller or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * The circuit creation for a smaller or equal operation is dependent on the sign of the input variables. As such,
+             * this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
              * 
              * The smaller or equal binary operation for unsigned variables is represented by the following truth table:
              * 
@@ -1875,7 +2077,8 @@ namespace gabe {
              * | 1       | 0       | 0          |
              * | 1       | 1       | 1          |
              * 
-             * We can see that this truth table is a "greater" unsigned operation truth table negated. As so, we can conclude that we can achieve the smaller or equal operation by negating the greater operation result.
+             * We can see that this truth table is a "greater" unsigned operation truth table negated. As so, we can conclude that
+             * we can achieve the smaller or equal operation by negating the greater operation result.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1888,7 +2091,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a smaller or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * The circuit creation for a smaller or equal operation is dependent on the sign of the input variables. As such,
+             * this function is directed to an operation between two signed variables, thus the "s" in the function name.
              * 
              * The smaller or equal binary operation for signed variables is represented by the following truth table:
              * 
@@ -1899,7 +2103,8 @@ namespace gabe {
              * | 1       | 0       | 1          |
              * | 1       | 1       | 1          |
              * 
-             * We can see that this truth table is a "greater" signed operation truth table negated. As so, we can conclude that we can achieve the smaller or equal operation by negating the greater operation result.
+             * We can see that this truth table is a "greater" signed operation truth table negated. As so, we can conclude that
+             * we can achieve the smaller or equal operation by negating the greater operation result.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1912,7 +2117,8 @@ namespace gabe {
              * 
              * -----
              * 
-             * The circuit creation for a smaller or equal operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * The circuit creation for a smaller or equal operation is dependent on the sign of the input variables. As such,
+             * this function is directed to an operation between two signed variables, thus the "s" in the function name.
              * 
              * The smaller or equal binary operation for signed variables is represented by the following truth table:
              * 
@@ -1923,7 +2129,8 @@ namespace gabe {
              * | 1       | 0       | 1          |
              * | 1       | 1       | 1          |
              * 
-             * We can see that this truth table is a "greater" signed operation truth table negated. As so, we can conclude that we can achieve the smaller or equal operation by negating the greater operation result.
+             * We can see that this truth table is a "greater" signed operation truth table negated. As so, we can conclude that
+             * we can achieve the smaller or equal operation by negating the greater operation result.
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1936,11 +2143,14 @@ namespace gabe {
              * 
              * -----
              * 
-             * A magnitude digital comparator is a combinational circuit that compares two digital or binary numbers in order to find out whether one binary number is equal, less than, or greater than the other binary number.
+             * A magnitude digital comparator is a combinational circuit that compares two digital or binary numbers in order to
+             * find out whether one binary number is equal, less than, or greater than the other binary number.
              * 
-             * The circuit creation for a comparator operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * The circuit creation for a comparator operation is dependent on the sign of the input variables. As such, this
+             * function is directed to an operation between two unsigned variables, thus the "u" in the function name.
              * 
-             * An unsigned comparator truth table is the fusion of the equal, greater, and smaller truth tables for unsigned variables:
+             * An unsigned comparator truth table is the fusion of the equal, greater, and smaller truth tables for unsigned
+             * variables:
              * 
              * | \f$A\f$ | \f$B\f$ | \f$=\f$ | \f$>\f$ | \f$<\f$ |
              * | :-----: | :-----: | :-----: | :-----: | :-----: |
@@ -1949,7 +2159,8 @@ namespace gabe {
              * | 1       | 0       | 0       | 1       | 0       |
              * | 1       | 1       | 1       | 0       | 0       |
              * 
-             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller unsigned operations (check operations documentation).
+             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller unsigned operations
+             * (check operations documentation).
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1964,11 +2175,14 @@ namespace gabe {
              * 
              * -----
              * 
-             * A magnitude digital comparator is a combinational circuit that compares two digital or binary numbers in order to find out whether one binary number is equal, less than, or greater than the other binary number.
+             * A magnitude digital comparator is a combinational circuit that compares two digital or binary numbers in order to
+             * find out whether one binary number is equal, less than, or greater than the other binary number.
              * 
-             * The circuit creation for a comparator operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two unsigned variables, thus the "u" in the function name.
+             * The circuit creation for a comparator operation is dependent on the sign of the input variables. As such, this
+             * function is directed to an operation between two unsigned variables, thus the "u" in the function name.
              * 
-             * An unsigned comparator truth table is the fusion of the equal, greater, and smaller truth tables for unsigned variables:
+             * An unsigned comparator truth table is the fusion of the equal, greater, and smaller truth tables for unsigned
+             * variables:
              * 
              * | \f$A\f$ | \f$B\f$ | \f$=\f$ | \f$>\f$ | \f$<\f$ |
              * | :-----: | :-----: | :-----: | :-----: | :-----: |
@@ -1977,7 +2191,8 @@ namespace gabe {
              * | 1       | 0       | 0       | 1       | 0       |
              * | 1       | 1       | 1       | 0       | 0       |
              * 
-             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller unsigned operations (check operations documentation).
+             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller unsigned operations
+             * (check operations documentation).
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -1992,9 +2207,11 @@ namespace gabe {
              * 
              * -----
              * 
-             * A magnitude digital comparator is a combinational circuit that compares two digital or binary numbers in order to find out whether one binary number is equal, less than, or greater than the other binary number.
+             * A magnitude digital comparator is a combinational circuit that compares two digital or binary numbers in order to
+             * find out whether one binary number is equal, less than, or greater than the other binary number.
              * 
-             * The circuit creation for a comparator operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * The circuit creation for a comparator operation is dependent on the sign of the input variables. As such, this
+             * function is directed to an operation between two signed variables, thus the "s" in the function name.
              * 
              * A signed comparator truth table is the fusion of the equal, greater, and smaller truth tables for signed variables:
              * 
@@ -2005,7 +2222,8 @@ namespace gabe {
              * | 1       | 0       | 0       | 0       | 1       |
              * | 1       | 1       | 1       | 0       | 0       |
              * 
-             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller signed operations (check operations documentation).
+             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller signed operations
+             * (check operations documentation).
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.
@@ -2020,9 +2238,11 @@ namespace gabe {
              * 
              * -----
              * 
-             * A magnitude digital comparator is a combinational circuit that compares two digital or binary numbers in order to find out whether one binary number is equal, less than, or greater than the other binary number.
+             * A magnitude digital comparator is a combinational circuit that compares two digital or binary numbers in order to
+             * find out whether one binary number is equal, less than, or greater than the other binary number.
              * 
-             * The circuit creation for a comparator operation is dependent on the sign of the input variables. As such, this function is directed to an operation between two signed variables, thus the "s" in the function name.
+             * The circuit creation for a comparator operation is dependent on the sign of the input variables. As such, this
+             * function is directed to an operation between two signed variables, thus the "s" in the function name.
              * 
              * A signed comparator truth table is the fusion of the equal, greater, and smaller truth tables for signed variables:
              * 
@@ -2033,7 +2253,8 @@ namespace gabe {
              * | 1       | 0       | 0       | 0       | 1       |
              * | 1       | 1       | 1       | 0       | 0       |
              * 
-             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller signed operations (check operations documentation).
+             * Thus, the comparator expression is all the three expressions from equal, greater, and smaller signed operations
+             * (check operations documentation).
              * 
              * @param in_a Input variable \f$A\f$.
              * @param in_b Input variable \f$B\f$.

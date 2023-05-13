@@ -77,6 +77,17 @@ void gabe::bcgen::CircuitGenerator::_assert_add_input(uint64_t size) {
     }
 }
 
+void gabe::bcgen::CircuitGenerator::_assert_add_output(uint64_t size) {
+    // Checks if there are enough available input wires to add the input
+    if (_assigned_output_wires + size > _expected_output_wires) {
+        // Creates the error message
+        const std::string error_msg = fmt::format("There aren't enough output wires available to add an output of size {}.", size);
+        
+        // Raises the error
+        throw std::runtime_error(error_msg);
+    }
+}
+
 gabe::bcgen::CircuitGenerator::CircuitGenerator(const std::string &circuit_name) : _circuit_name(circuit_name), _circuits_directory("circuits") {
     _create_save_directory();
 }
@@ -144,6 +155,30 @@ void gabe::bcgen::CircuitGenerator::add_input(Variable& variable) {
     }
 }
 
+void gabe::bcgen::CircuitGenerator::add_output(Wire& wire) {
+    // Safety check
+    _assert_add_output(1);
+
+    // Caches the wire into the list of output wires
+    _output_wires.push_back(&wire);
+
+    // Updates the control variable
+    _assigned_output_wires++;
+}
+
+void gabe::bcgen::CircuitGenerator::add_output(Variable& variable) {
+    // Safety check
+    _assert_add_output(variable.size());
+
+    // Caches the wires into the list of output wires
+    for (auto & wire : variable) {
+        _output_wires.push_back(&wire);
+    }
+
+    // Updates the control variable
+    _assigned_output_wires += variable.size();
+}
+
 void gabe::bcgen::CircuitGenerator::start() {
     // Safety check - No input wires
     if (!_expected_input_wires) {
@@ -151,9 +186,21 @@ void gabe::bcgen::CircuitGenerator::start() {
         throw std::runtime_error(error_msg);
     }
 
-    // Safety check - Dead wires
+    // Safety check - Dead input wires
     if (_counter_wires < _expected_input_wires) {
         const std::string error_msg = "Dead wires in the circuit. There are input wires that are not assigned to a variable.";
+        throw std::runtime_error(error_msg);
+    }
+
+    // Safety check - No output wires
+    if (!_expected_output_wires) {
+        const std::string error_msg = "There are no output wires defined.";
+        throw std::runtime_error(error_msg);
+    }
+
+    // Safety check - Missing output wires
+    if (_assigned_output_wires < _expected_output_wires) {
+        const std::string error_msg = "There are lost output wires in the circuit.";
         throw std::runtime_error(error_msg);
     }
 
@@ -163,6 +210,12 @@ void gabe::bcgen::CircuitGenerator::start() {
 }
 
 void gabe::bcgen::CircuitGenerator::stop() {
+    // This is just to make the output wires the last ones written in the circuit file
+    // TODO - Think of a better way to do this...
+    for (auto& wire : _output_wires) {
+        AND(*wire, _one_wire, *wire);
+    }
+
     // Open circuit file
     std::ofstream circuit(
         _circuits_directory / (_circuit_name + ".txt"),
