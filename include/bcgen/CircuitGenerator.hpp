@@ -27,6 +27,11 @@ namespace gabe {
         **/
         class Variable
         {
+        private:
+            // QoL typedefs for iterator component
+            using iterator = std::vector<Wire>::iterator;
+            using const_iterator = std::vector<Wire>::const_iterator;
+
         protected:
             std::vector<Wire> _wires; /**<Variable wires.*/
         
@@ -76,12 +81,30 @@ namespace gabe {
             **/
             uint64_t size() const;
 
-            using iterator = std::vector<Wire>::iterator;
-            using const_iterator = std::vector<Wire>::const_iterator;
-
+            /**
+             * @brief Iteration begin method.
+             * @note This iteration is mutable.
+             * @return Iterator with initial position.
+            **/
             iterator begin() { return _wires.begin(); }
-            const_iterator begin() const { return _wires.begin(); }
+
+            /**
+             * @brief Iteration end method.
+             * @return Iterator after final position.
+            **/
             iterator end() { return _wires.end(); }
+
+            /**
+             * @brief Constant iteration begin method.
+             * @note This iteration is not mutable.
+             * @return Constant iterator with initial position.
+            **/
+            const_iterator begin() const { return _wires.begin(); }
+
+            /**
+             * @brief Constant iteration end method.
+             * @return Constant iterator after final position.
+            **/
             const_iterator end() const { return _wires.end(); }
         };
         
