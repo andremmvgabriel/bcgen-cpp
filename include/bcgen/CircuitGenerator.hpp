@@ -270,8 +270,8 @@ namespace gabe {
              * In the end, the generated circuit file will have the name of the inserted circuit name and located into the
              * inserted location.
              * 
-             * @note By default, the directory to the circuits is located at a circuits directory that should be in the same level from
-             * where the executable is being executed.
+             * @note By default, the directory to the circuits is located at a circuits directory that should be in the same level
+             * from where the executable is being executed.
              * 
              * @param circuit_name Name of the circuit.
              * @param circuits_directory Location of the circuit.
@@ -2276,6 +2276,99 @@ namespace gabe {
              * @param out_s Output wire \f$Smaller\f$.
             **/
             void comparator_s(const Variable& in_a, const Variable& in_b, Variable& out_e, Variable& out_g, Variable &out_s);
+        };
+
+        /**
+         * @brief Circuit generator class for Bristol format circuits.
+         * 
+         * -----
+         * 
+         * This class extends all the core functionality of the circuit generator abstract class and it was developed to target
+         * the generation of boolean circuits with [Bristol](https://homes.esat.kuleuven.be/~nsmart/MPC/) format (check link to
+         * undestand the specific format features for Bristol).
+        **/
+        class BristolCircuitGenerator : public CircuitGenerator
+        {
+        protected:
+            /**
+             * @brief Writes the header section of the circuit into a file.
+             * 
+             * -----
+             * 
+             * This function overrides the behavior from the original virtual function from the circuit generator abstract class.
+             * It makes writes the header section with the correct Bristol format.
+             * 
+             * @param file File to write.
+            **/
+            virtual void _write_header(std::ofstream& file) override;
+        
+        public:
+            /** @brief Default construction of a new Bristol Circuit Generator object is deleted. **/
+            BristolCircuitGenerator() = delete;
+
+            /**
+             * @brief Construct a new Bristol Circuit Generator object for a specified circuit name and location.
+             * 
+             * -----
+             * 
+             * In the end, the generated circuit file will have the name of the inserted circuit name and located into the
+             * inserted location.
+             * 
+             * @note By default, the directory to the circuits is located at a circuits directory that should be in the same level
+             * from where the executable is being executed.
+             * 
+             * @param circuit_name Name of the circuit.
+             * @param circuits_directory Location of the circuit.
+            **/
+            BristolCircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory = "circuits");
+        };
+
+        /**
+         * @brief Circuit generator class for Libscapi format circuits.
+         * 
+         * -----
+         * 
+         * This class extends all the core functionality of the circuit generator abstract class and it was developed to target
+         * the generation of boolean circuits with [Libscapi](https://libscapi.readthedocs.io/en/latest/circuits.html) format
+         * (check link to undestand the specific format features for Libscapi).
+         * 
+         * @note Libscapi is an open source secure computation library that has it's own format to write/read boolean circuits.
+         * Here is their [github](https://github.com/cryptobiu/libscapi).
+        **/
+        class LibscapiCircuitGenerator : public CircuitGenerator
+        {
+        protected:
+            /**
+             * @brief Writes the header section of the circuit into a file.
+             * 
+             * -----
+             * 
+             * This function overrides the behavior from the original virtual function from the circuit generator abstract class.
+             * It makes writes the header section with the correct Libscapi format.
+             * 
+             * @param file File to write.
+            **/
+            virtual void _write_header(std::ofstream& file) override;
+        
+        public:
+            /** @brief Default construction of a new Libscapi Circuit Generator object is deleted. **/
+            LibscapiCircuitGenerator() = delete;
+            
+            /**
+             * @brief Construct a new Libscapi Circuit Generator object for a specified circuit name and location.
+             * 
+             * -----
+             * 
+             * In the end, the generated circuit file will have the name of the inserted circuit name and located into the
+             * inserted location.
+             * 
+             * @note By default, the directory to the circuits is located at a circuits directory that should be in the same level
+             * from where the executable is being executed.
+             * 
+             * @param circuit_name Name of the circuit.
+             * @param circuits_directory Location of the circuit.
+            **/
+            LibscapiCircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory = "circuits");
         };
     }
 }

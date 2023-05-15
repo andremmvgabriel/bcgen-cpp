@@ -1,11 +1,5 @@
-#include <bcgen/LibscapiCircuitGenerator.hpp>
+#include <bcgen/CircuitGenerator.hpp>
 #include <fmt/format.h>
-
-#include <numeric>
-
-gabe::bcgen::LibscapiCircuitGenerator::LibscapiCircuitGenerator(const std::string &circuit_name) : CircuitGenerator("libscapi_" + circuit_name) {
-    _gates_map = { {"xor", "0110"}, {"inv", "10"}, {"and", "0001"}, {"or", "0111"} };
-}
 
 gabe::bcgen::LibscapiCircuitGenerator::LibscapiCircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory) : CircuitGenerator("libscapi_" + circuit_name, circuits_directory) {
     _gates_map = { {"xor", "0110"}, {"inv", "10"}, {"and", "0001"}, {"or", "0111"} };

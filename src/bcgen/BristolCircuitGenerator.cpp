@@ -1,9 +1,5 @@
-#include <bcgen/BristolCircuitGenerator.hpp>
+#include <bcgen/CircuitGenerator.hpp>
 #include <fmt/format.h>
-
-gabe::bcgen::BristolCircuitGenerator::BristolCircuitGenerator(const std::string &circuit_name) : CircuitGenerator("bristol_" + circuit_name) {
-    _gates_map = { {"xor", "XOR"}, {"inv", "INV"}, {"and", "AND"}, {"or", "OR"} };
-}
 
 gabe::bcgen::BristolCircuitGenerator::BristolCircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory) : CircuitGenerator("bristol_" + circuit_name, circuits_directory) {
     _gates_map = { {"xor", "XOR"}, {"inv", "INV"}, {"and", "AND"}, {"or", "OR"} };
