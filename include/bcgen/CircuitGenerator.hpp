@@ -263,19 +263,6 @@ namespace gabe {
             CircuitGenerator() = delete;
 
             /**
-             * @brief Construct a new Circuit Generator object for a specified circuit name.
-             * 
-             * -----
-             * 
-             * In the end, the generated circuit file will have the name of the inserted circuit name. It will assume the default
-             * location of the circuit file to be at a "circuit" directory that is present in the location that called the
-             * executable.
-             * 
-             * @param circuit_name Name of the circuit.
-            **/
-            CircuitGenerator(const std::string &circuit_name);
-
-            /**
              * @brief Construct a new Circuit Generator object for a specified circuit name and location.
              * 
              * -----
@@ -283,10 +270,13 @@ namespace gabe {
              * In the end, the generated circuit file will have the name of the inserted circuit name and located into the
              * inserted location.
              * 
+             * @note By default, the directory to the circuits is located at a circuits directory that should be in the same level from
+             * where the executable is being executed.
+             * 
              * @param circuit_name Name of the circuit.
              * @param circuits_directory Location of the circuit.
             **/
-            CircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory);
+            CircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory = "circuits");
 
             /** @brief Destroy the Circuit Generator object. **/
             ~CircuitGenerator();

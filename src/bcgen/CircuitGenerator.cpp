@@ -88,10 +88,6 @@ void gabe::bcgen::CircuitGenerator::_assert_add_output(uint64_t size) {
     }
 }
 
-gabe::bcgen::CircuitGenerator::CircuitGenerator(const std::string &circuit_name) : _circuit_name(circuit_name), _circuits_directory("circuits") {
-    _create_save_directory();
-}
-
 gabe::bcgen::CircuitGenerator::CircuitGenerator(const std::string &circuit_name, const std::string &circuits_directory) : _circuit_name(circuit_name), _circuits_directory(circuits_directory) {
     _create_save_directory();
 }
