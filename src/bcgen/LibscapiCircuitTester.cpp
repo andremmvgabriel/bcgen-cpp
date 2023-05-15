@@ -6,7 +6,7 @@
 gabe::bcgen::LibscapiCircuitTester::LibscapiCircuitTester() : CircuitTester() {
     _gates_operations = {
         { "0110", [&](const std::vector<std::string>& gate){ return _wires[std::stoi(gate[2])] ^ _wires[std::stoi(gate[3])]; } },
-        { "01",   [&](const std::vector<std::string>& gate){ return !_wires[std::stoi(gate[2])]; } },
+        { "10",   [&](const std::vector<std::string>& gate){ return !_wires[std::stoi(gate[2])]; } },
         { "0001", [&](const std::vector<std::string>& gate){ return _wires[std::stoi(gate[2])] & _wires[std::stoi(gate[3])]; } },
         { "0111", [&](const std::vector<std::string>& gate){ return _wires[std::stoi(gate[2])] | _wires[std::stoi(gate[3])]; } }
     };
@@ -61,10 +61,10 @@ void gabe::bcgen::LibscapiCircuitTester::_read_header() {
         line_parts = _split_str(line, " ");
 
         // Check if the beginning of the circuit was found instead
-        if (line_parts.size() <= 2) { break; }
+        if (line_parts.size() > 2) { break; }
 
         int n_wires = std::stoi(line_parts[1]);
-        _input_parties.push_back(n_wires);
+        _output_parties.push_back(n_wires);
 
         // Reads the party wire labels
         std::vector<uint64_t> cur_party_wires;
@@ -72,8 +72,8 @@ void gabe::bcgen::LibscapiCircuitTester::_read_header() {
             std::getline(_circuit, line);
             uint64_t wire_label = std::stoi(line);
             cur_party_wires.push_back(wire_label);
-            if (wire_label > _counter_wires) {
-                _counter_wires = wire_label;
+            if (wire_label + 1 > _counter_wires) {
+                _counter_wires = wire_label + 1;
             }
         }
         _output_parties_wires.push_back(cur_party_wires);
