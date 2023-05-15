@@ -76,7 +76,7 @@ void gabe::bcgen::LibscapiCircuitTester::_read_header() {
                 _counter_wires = wire_label;
             }
         }
-        _input_parties_wires.push_back(cur_party_wires);
+        _output_parties_wires.push_back(cur_party_wires);
 
         // Ignores the next line (empty line)
         std::getline(_circuit, line);
@@ -88,7 +88,7 @@ void gabe::bcgen::LibscapiCircuitTester::_read_header() {
     // Makes sure the reading pointer is back to the beginning of the circuit
     _circuit.seekg(_circuit_start_pos);
 
-    // 
+    // Setups the whole size of the wires
     _wires = std::vector<uint8_t>(_counter_wires);
 
     // Prints circuit information to the user

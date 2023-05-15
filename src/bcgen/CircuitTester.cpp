@@ -41,6 +41,13 @@ void gabe::bcgen::CircuitTester::open(const std::string &circuit_name, const std
         _circuit.close();
     }
 
+    // Caches the name and directory of the circuit
+    _circuit_name = circuit_name;
+    _circuits_directory = std::filesystem::absolute(circuit_directory);
+
+    // Restarts the executions counter
+    _counter_executions = 0;
+
     // Open the circuit file
     std::string circuit_path = std::filesystem::absolute(circuit_directory) / (circuit_name + ".txt");
     _circuit = std::ifstream( circuit_path, std::ios::in );
@@ -94,35 +101,43 @@ void gabe::bcgen::CircuitTester::run(const std::vector<uint8_t> &inputs) {
 }
 
 void gabe::bcgen::CircuitTester::_print_results() {
-    printf("\n> Results:\n");
-    printf("-> Inputs:\n");
-    for (int i = 0; i < _input_parties_wires.size(); i++) {
-        printf("   > %s", fmt::format("Party {}:", i).c_str());
+    printf("%s\n", fmt::format("+ {:^78} +", fmt::format(">>> Execution {} <<<", ++_counter_executions)).c_str());
+    printf("%s\n", fmt::format("+ {:<78} +", "Inputs:").c_str());
+    for (int i = 0; i < _input_parties.size(); i++) {
+        std::string word;
         for (auto wire : _input_parties_wires[i]) {
-            printf(" %d", _wires[wire]);
+            word += std::to_string(_wires[wire]);
         }
-        printf("\n");
+        printf("%s\n", fmt::format("+--> P{:<5}: {:<67} +", i, word).c_str());
     }
-    printf("-> Outputs:\n");
-    for (int i = 0; i < _output_parties_wires.size(); i++) {
-        printf("   > %s", fmt::format("Party {}:", i).c_str());
+    printf("%s\n", fmt::format("+ {:<78} +", "Outputs:").c_str());
+    for (int i = 0; i < _output_parties.size(); i++) {
+        std::string word;
         for (auto wire : _output_parties_wires[i]) {
-            printf(" %d", _wires[wire]);
+            word += std::to_string(_wires[wire]);
         }
-        printf("\n");
+        printf("%s\n", fmt::format("+--> P{:<5}: {:<67} +", i, word).c_str());
     }
+    printf("%s\n", fmt::format("+{}+", std::string(80, '-')).c_str());
 }
 
 void gabe::bcgen::CircuitTester::_print_circuit_info() {
-    printf("\n> Circuit Info:\n");
-    printf("-> Gates: %ld\n", _counter_gates);
-    printf("-> Wires: %ld\n", _counter_wires);
-    printf("-> Number input parties: %lu\n", _input_parties.size());
-    for (int i = 0; i < _input_parties.size(); i++) {
-        printf("   > Input party %d: %lu wires\n", i, _input_parties[i]);
+    printf("\n");
+    printf("%s\n", fmt::format("+{}+", std::string(80, '-')).c_str());
+    printf("%s\n", fmt::format("+ Name: {:<72} +", _circuit_name).c_str());
+    printf("%s\n", fmt::format("+ Path: {:<72} +", _circuits_directory).c_str());
+    printf("%s\n", fmt::format("+{}+", std::string(80, ' ')).c_str());
+    printf("%s\n", fmt::format("+ Total gates: {:<65} +", _counter_gates).c_str());
+    printf("%s\n", fmt::format("+ Total wires: {:<65} +", _counter_wires).c_str());
+    printf("%s\n", fmt::format("+{}+", std::string(80, ' ')).c_str());
+    printf("%s\n", fmt::format("+ {:^8} + {:^32} + {:^32} +", "Party", "Inputs sizes", "Output sizes").c_str());
+    int biggest = _input_parties.size() > _output_parties.size() ? _input_parties.size() : _output_parties.size();
+    for (int i = 0; i < biggest; i++) {
+        printf("%s\n", fmt::format("+ {:^8} | {:^32} | {:^32} +",
+            i,
+            i >= _input_parties.size() ? "-" : std::to_string(_input_parties[i]),
+            i >= _output_parties.size() ? "-" : std::to_string(_output_parties[i])
+        ).c_str());
     }
-    printf("-> Number output parties: %lu\n", _output_parties.size());
-    for (int i = 0; i < _output_parties.size(); i++) {
-        printf("   > Output party %d: %lu wires\n", i, _output_parties[i]);
-    }
+    printf("%s\n", fmt::format("+{}+", std::string(80, '-')).c_str());
 }

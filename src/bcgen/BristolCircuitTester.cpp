@@ -66,7 +66,7 @@ void gabe::bcgen::BristolCircuitTester::_read_header() {
     // Saves the current read index (start of the circuit)
     _circuit_start_pos = _circuit.tellg();
 
-    // 
+    // Setups the whole size of the wires
     _wires = std::vector<uint8_t>(_counter_wires);
 
     // Prints circuit information to the user
