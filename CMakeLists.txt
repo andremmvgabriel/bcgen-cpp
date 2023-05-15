@@ -72,6 +72,9 @@ set(bcgen_sources
     src/bcgen/CircuitGenerator.cpp
     src/bcgen/BristolCircuitGenerator.cpp
     src/bcgen/LibscapiCircuitGenerator.cpp
+    src/bcgen/CircuitTester.cpp
+    src/bcgen/BristolCircuitTester.cpp
+    src/bcgen/LibscapiCircuitTester.cpp
 )
 add_library(bcgen ${bcgen_sources})
 add_library(bcgen::bcgen ALIAS bcgen)
