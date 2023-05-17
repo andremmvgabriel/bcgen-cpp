@@ -24,17 +24,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #     set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 # endif()
 
-
-# Changes the binary, static lib, and libraries default paths of the CMake build, respectively
-# set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin)
-# set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/lib)
-# set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/lib)
-
 ###
 # Project Options
 ###
-option(BCGEN_OR_GATES "Allow generated circuits with OR gates" 1)
-option(BCGEN_OPTIMIZE "Build bcgen in optimized mode." 0)
+option(BCGEN_OR_GATES "Allow generated circuits with OR gates" ON)
+option(BCGEN_OPTIMIZE "Build bcgen in optimized mode." OFF)
 option(BCGEN_DOCS "Generate bcgen project Doxygen documentation" OFF)
 option(BCGEN_TESTS "Build bcgen tests." OFF)
 option(BCGEN_EXAMPLES "Generate bcgen examples." OFF)
@@ -80,7 +74,10 @@ add_library(bcgen ${bcgen_sources})
 add_library(bcgen::bcgen ALIAS bcgen)
 target_include_directories(bcgen PUBLIC include build/_deps)
 target_link_libraries(bcgen PUBLIC fmt::fmt)
-target_compile_definitions(bcgen PUBLIC BCGEN_OR_GATES=${BCGEN_OR_GATES} BCGEN_OPTIMIZE=${BCGEN_OPTIMIZE})
+target_compile_definitions(bcgen PUBLIC
+    BCGEN_OR_GATES=$<IF:$<BOOL:${BCGEN_OR_GATES}>,1,0>
+    BCGEN_OPTIMIZE=$<IF:$<BOOL:${BCGEN_OPTIMIZE}>,1,0>
+)
 
 ###
 # Tests & Examples

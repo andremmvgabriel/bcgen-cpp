@@ -404,7 +404,18 @@ void gabe::bcgen::CircuitGenerator::AND(const Variable& in_a, const Variable& in
 }
 
 void gabe::bcgen::CircuitGenerator::OR(const Wire in_a, const Wire in_b, Wire& out) {
+#if BCGEN_OR_GATES == 1
     _write_2_1_gate( in_a.label, in_b.label, out.label = _counter_wires++, _gates_map["or"] );
+#else
+    // Temp wires
+    Wire wire1, wire2;
+
+    // Needed operations to avoid writting OR gates
+    INV(in_a, wire1);
+    INV(in_b, wire2);
+    AND(wire1, wire2, out);
+    INV(out, out);
+#endif
 }
 
 void gabe::bcgen::CircuitGenerator::OR(const Variable& in_a, const Variable& in_b, Variable& out) {
