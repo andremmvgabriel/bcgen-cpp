@@ -139,7 +139,6 @@ namespace gabe {
             uint64_t _counter_gates = 0x00; /**<Control variable to count gates.*/
             uint64_t _expected_input_wires = 0x00; /**<Input wires expected to be assigned to input variables.*/
             uint64_t _expected_output_wires = 0x00; /**<Output wires expected to be assigned to output variables.*/
-            uint64_t _assigned_output_wires = 0x00; /**<Output wires expected to be assigned to output variables.*/
             std::unordered_map<std::string, uint64_t> _gates_counters; /**<Mapping control variable to count all the gates.*/
 
             // Circuit buffer - Memory management

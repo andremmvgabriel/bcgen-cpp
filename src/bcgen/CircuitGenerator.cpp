@@ -79,7 +79,7 @@ void gabe::bcgen::CircuitGenerator::_assert_add_input(uint64_t size) {
 
 void gabe::bcgen::CircuitGenerator::_assert_add_output(uint64_t size) {
     // Checks if there are enough available input wires to add the input
-    if (_assigned_output_wires + size > _expected_output_wires) {
+    if (_output_wires.size() + size > _expected_output_wires) {
         // Creates the error message
         const std::string error_msg = fmt::format("There aren't enough output wires available to add an output of size {}.", size);
         
@@ -157,9 +157,6 @@ void gabe::bcgen::CircuitGenerator::add_output(Wire& wire) {
 
     // Caches the wire into the list of output wires
     _output_wires.push_back(&wire);
-
-    // Updates the control variable
-    _assigned_output_wires++;
 }
 
 void gabe::bcgen::CircuitGenerator::add_output(Variable& variable) {
@@ -170,9 +167,6 @@ void gabe::bcgen::CircuitGenerator::add_output(Variable& variable) {
     for (auto & wire : variable) {
         _output_wires.push_back(&wire);
     }
-
-    // Updates the control variable
-    _assigned_output_wires += variable.size();
 }
 
 void gabe::bcgen::CircuitGenerator::start() {
@@ -195,7 +189,7 @@ void gabe::bcgen::CircuitGenerator::start() {
     }
 
     // Safety check - Missing output wires
-    if (_assigned_output_wires < _expected_output_wires) {
+    if (_output_wires.size() < _expected_output_wires) {
         const std::string error_msg = "There are lost output wires in the circuit.";
         throw std::runtime_error(error_msg);
     }
@@ -303,7 +297,7 @@ void gabe::bcgen::CircuitGenerator::rotate_left(Variable &variable, uint64_t amo
         uint64_t j = (i + amount) % variable.size();
 
         // Bit replacement
-        variable[i] = temp[j];
+        variable[j] = temp[i];
     }
 }
 
@@ -325,7 +319,7 @@ void gabe::bcgen::CircuitGenerator::rotate_right(Variable &variable, uint64_t am
         uint64_t j = (i + amount) % variable.size();
 
         // Bit replacement
-        variable[j] = temp[i];
+        variable[i] = temp[j];
     }
 }
 
