@@ -83,7 +83,7 @@ target_compile_definitions(bcgen PUBLIC
 # Tests & Examples
 ###
 add_subdirectory( tests )
-# add_subdirectory( examples )
+add_subdirectory( examples )
 
 
 

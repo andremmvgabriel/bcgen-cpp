@@ -76,6 +76,13 @@ namespace gabe {
             const Wire& operator [] (uint64_t index) const;
 
             /**
+             * @brief Copies a value into the current one.
+             * @note Limitation: You can only use this with variables with the same size. 
+             * @param other Other variable that will be copied.
+            **/
+            void operator = (const Variable& other);
+
+            /**
              * @brief Get the size of the variable.
              * @return Size of the variable (number wires).
             **/

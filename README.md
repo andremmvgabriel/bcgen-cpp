@@ -31,3 +31,10 @@ The project is setup with several unit tests that can be executed to make sure e
 The project is setup with several examples that can be executed to generate specific circuits that might help an user. To compile them, please build the project using the examples flags, as follows:
 
 `cmake -B build -S . -DBCGEN_EXAMPLES=ON && cmake --build build`
+
+## TODO
+
+1. Make use of BCGEN_OPTIMIZE CMake flag.
+   1. Adapt methods to accept variables with arbitrary sizes;
+   2. Keep track of the created gates so there isn't duplicated gates in the circuit.
+2. Implement operations on other types (currently only integers are supported).
