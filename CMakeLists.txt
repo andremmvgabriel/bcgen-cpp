@@ -11,18 +11,10 @@ project(BCGen
 ###
 include(FetchContent)
 
-
-
 # Specify the C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# find_program(CLANG_TIDY_EXE clang-tidy)
-# if(CLANG_TIDY_EXE)
-#     set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY_EXE}")
-#     set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
-# endif()
 
 ###
 # Project Options
@@ -84,8 +76,3 @@ target_compile_definitions(bcgen PUBLIC
 ###
 add_subdirectory( tests )
 add_subdirectory( examples )
-
-
-
-add_executable(Main main.cpp)
-target_link_libraries(Main PUBLIC bcgen::bcgen)
